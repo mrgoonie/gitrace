@@ -1,0 +1,42 @@
+## Project Information
+
+Main domain: GitRace.dev
+
+### Workflow:
+- Submit a github url
+- Wait for the leaderboard to update
+
+## Tech stack
+- [x] Node.js (TypeScript)
+- [x] Express.js
+- [x] Prisma (PostgreSQL)
+- [x] Auth (Lucia)
+- [x] Zod
+- [x] Template Engine (EJS)
+- [x] Styling with TailwindCSS
+- [x] Commitlint
+- [x] Swagger UI
+
+Uses **PostgreSQL** database.
+
+## When working with EJS
+always use icons from https://remixicon.com/
+always use tailwindcss for styling
+
+## When working with Tailwind or CSS
+always implement responsive layout with mobile-first approach
+always implement dark mode
+
+## For Express.js project
+always import prisma client with: `import { prisma } from "@/lib/db";`
+always use async/await for better readability and performance
+always use `next()` for error handling of all routers
+always use try-catch for fallback error handling
+always use zod for validation
+always generate swagger docs for all APIs
+always use `bearerAuth` and `ApiKeyAuth` for swagger security
+
+### Project Description
+
+[GitRace.dev](https://gitrace.dev) is fun project to track your Github commits and show a leaderboard.
+
