@@ -93,9 +93,10 @@ async function startServer() {
   // start git stats cron job
   startGitStatsCron();
 
-  app.listen(env.PORT, () => {
+  const server = app.listen(env.PORT, () => {
     console.log(chalk.green(`🚀 Server running on port ${env.PORT}`));
   });
+  server.setTimeout(60_000);
 
   // Handle graceful shutdown
   process.on("SIGTERM", async () => {
