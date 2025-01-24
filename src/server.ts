@@ -12,6 +12,7 @@ import { fileURLToPath } from "url";
 import { env } from "@/env";
 import { validateSession, verifyRequest } from "@/lib/auth";
 import { browserPool } from "@/lib/playwright";
+import { startGitStatsCron } from "@/modules/git-profile/git-profile-cron";
 import { createInitialPlans } from "@/modules/plan/plans";
 import { initWorkspacePermissions } from "@/modules/workspace";
 import { apiRouter } from "@/routes/api";
@@ -20,7 +21,6 @@ import { pageRouter } from "@/routes/pages";
 
 import { swaggerOptions } from "./config";
 import { fetchListAIModels } from "./lib/ai/models";
-import { createInitialCategories } from "./modules/category";
 import { polarWebhookRouter } from "./routes/webhooks/polar-webhook";
 
 declare global {
@@ -88,8 +88,10 @@ app.use((error: any, _req: express.Request, res: express.Response, _next: expres
 async function startServer() {
   await initWorkspacePermissions();
   await browserPool.initialize();
-  await createInitialCategories();
   await fetchListAIModels({ debug: true });
+
+  // start git stats cron job
+  startGitStatsCron();
 
   app.listen(env.PORT, () => {
     console.log(chalk.green(`🚀 Server running on port ${env.PORT}`));

@@ -1,9 +1,9 @@
-# GitRace.dev
+# GitRace
 
-[GitRace.dev](https://gitrace.dev) is fun project to track your Github commits and show a leaderboard.
+[GitRace](https://gitrace.zii.one) is fun project to track your Github commits and show a leaderboard.
 
 ### Workflow:
-- Submit a github url
+- Submit a github username
 - Wait for the leaderboard to update
 
 ## Stack

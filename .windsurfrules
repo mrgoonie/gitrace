@@ -1,6 +1,6 @@
 ## Project Information
 
-Main domain: GitRace.dev
+Main domain: GitRace.zii.one
 
 ### Workflow:
 - Submit a github url
@@ -38,5 +38,5 @@ always use `bearerAuth` and `ApiKeyAuth` for swagger security
 
 ### Project Description
 
-[GitRace.dev](https://gitrace.dev) is fun project to track your Github commits and show a leaderboard.
+[GitRace](https://gitrace.zii.one) is fun project to track your Github commits and show a leaderboard.
 
