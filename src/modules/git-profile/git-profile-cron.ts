@@ -34,6 +34,18 @@ async function updateGitStats() {
             const currentYear = new Date().getFullYear();
             const stats = await fetchGitStats(profile.username, currentYear);
 
+            // Update git profile if anything changed
+            if (stats.url !== profile.url || stats.avatarUrl !== profile.avatar) {
+              await prisma.gitProfile.update({
+                where: { id: profile.id },
+                data: {
+                  url: stats.url,
+                  avatar: stats.avatarUrl,
+                },
+              });
+              console.log(`Updated git profile for ${profile.username}`);
+            }
+
             // Convert stats to match our schema
             const input: CreateYearlyStatsSchema = createYearlyStatsSchema.parse({
               year: currentYear,
@@ -71,4 +83,5 @@ async function updateGitStats() {
 export function startGitStatsCron() {
   console.log("Starting git stats cron job...");
   cron.schedule("*/2 * * * *", updateGitStats);
+  updateGitStats();
 }

@@ -57,7 +57,11 @@ export async function createGitProfile(
 
     // Check if profile already exists
     const existingProfile = await prisma.gitProfile.findUnique({
-      where: { username: validatedData.username },
+      where: {
+        username: validatedData.username,
+        url: validatedData.url,
+        avatar: validatedData.avatar,
+      },
     });
 
     if (existingProfile) {

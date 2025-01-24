@@ -313,7 +313,7 @@ function renderLeaderboardItem(profile, stats, globalRank) {
       <div class="flex items-center space-x-4 mb-2 sm:mb-0">
         <span class="${globalRank <= 3 ? 'text-2xl' : 'text-xl'} font-semibold ${globalRank <= 3 ? 'text-red-400 dark:text-yellow-500' : 'text-gray-500'}">${globalRank <= 3 ? rankEmoji : ''} #${globalRank}</span>
         <a href="https://github.com/${profile.username}" target="_blank" class="flex items-center hover:text-blue-500">
-          <i class="ri-github-fill mr-2"></i>
+          ${profile.avatar ? `<img src="${profile.avatar}" alt="${profile.username}" class="w-6 h-6 rounded-full mr-2" />` : '<i class="ri-github-fill mr-2"></i>'}
           <strong>${profile.username}</strong>
         </a>
         <button onclick="toggleContributionGraph('${profile.username}')" class="text-gray-500 hover:text-blue-500">
