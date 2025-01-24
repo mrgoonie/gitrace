@@ -1,7 +1,7 @@
 // Global state for pagination
 let currentPage = 1;
 let totalPages = 1;
-let perPage = 3;
+let perPage = 50;
 
 // Handle form submission to create git profile
 async function handleCreateProfile(event) {
@@ -115,16 +115,16 @@ async function loadLeaderboard(page = 1) {
             <span class="${globalRank <= 3 ? 'text-2xl' : 'text-xl'} font-semibold ${globalRank <= 3 ? 'text-red-400 dark:text-yellow-500' : 'text-gray-500'}">${globalRank <= 3 ? rankEmoji : ''} #${globalRank}</span>
             <a href="https://github.com/${profile.username}" target="_blank" class="flex items-center hover:text-blue-500">
               <i class="ri-github-fill mr-2"></i>
-              <span>${profile.username}</span>
+              <strong>${profile.username}</strong>
             </a>
           </div>
-          <div class="flex flex-wrap gap-4 sm:gap-6">
+          <div class="flex flex-col gap-2 sm:flex-row sm:gap-4 sm:flex-wrap">
             <div class="text-sm whitespace-nowrap">
-              <span class="text-gray-500 dark:text-gray-400">🔥 Current:</span>
+              <span class="text-gray-500 dark:text-gray-400">🔥 Current streak:</span>
               <span class="ml-1 font-medium">${stats.currentStreak} days</span>
             </div>
             <div class="text-sm whitespace-nowrap">
-              <span class="text-gray-500 dark:text-gray-400">⚡ Best:</span>
+              <span class="text-gray-500 dark:text-gray-400">⚡ Longest streak:</span>
               <span class="ml-1 font-medium">${stats.longestStreak} days</span>
             </div>
             <div class="text-sm whitespace-nowrap">

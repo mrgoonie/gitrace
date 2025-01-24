@@ -12,6 +12,7 @@ import { fileURLToPath } from "url";
 import { env } from "@/env";
 import { validateSession, verifyRequest } from "@/lib/auth";
 import { browserPool } from "@/lib/playwright";
+import { startGitStatsCron } from "@/modules/git-profile/git-profile-cron";
 import { createInitialPlans } from "@/modules/plan/plans";
 import { initWorkspacePermissions } from "@/modules/workspace";
 import { apiRouter } from "@/routes/api";
@@ -88,6 +89,9 @@ async function startServer() {
   await initWorkspacePermissions();
   await browserPool.initialize();
   await fetchListAIModels({ debug: true });
+
+  // start git stats cron job
+  startGitStatsCron();
 
   app.listen(env.PORT, () => {
     console.log(chalk.green(`🚀 Server running on port ${env.PORT}`));
