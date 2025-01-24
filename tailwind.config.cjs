@@ -18,6 +18,6 @@ module.exports = {
       },
     },
   },
-  darkMode: ["selector", "class"],
+  darkMode: "class",
   plugins: [],
 };

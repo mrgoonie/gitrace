@@ -2,7 +2,7 @@
   const user = <%- user ? JSON.stringify(user) : 'null' %>;
 </script>
 <div class="px-6 py-20 flex flex-col items-center justify-center max-w-6xl mx-auto">
-  <h1 class="text-4xl font-bold mb-12 text-center">Git Race Leaderboard 2025</h1>
+  <h1 class="text-4xl font-bold mb-12 text-center text-gray-900 dark:text-white">Git Race Leaderboard 2025</h1>
 
   <!-- Create profile form -->
   <form id="create-profile-form" class="w-full max-w-lg mb-12">
@@ -11,25 +11,31 @@
         <label for="github-username" class="sr-only">GitHub Username</label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <i class="ri-github-fill text-gray-400"></i>
+            <i class="ri-github-fill text-gray-400 dark:text-gray-500"></i>
           </div>
-          <input type="text" id="github-username" name="username" required placeholder="Enter GitHub username" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+          <input type="text" id="github-username" name="username" required placeholder="Enter GitHub username" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg 
+            focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+            dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400
+            dark:focus:ring-blue-400 dark:focus:border-blue-400">
         </div>
       </div>
-      <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800">
+      <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm 
+        text-white bg-blue-600 hover:bg-blue-700 
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+        dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-gray-800 dark:focus:ring-blue-400">
         <i class="ri-add-line mr-2"></i>
-        Add Profile
+        Join Now!
       </button>
     </div>
   </form>
 
   <!-- Leaderboard -->
-  <div class="w-full bg-white dark:bg-gray-900 rounded-lg shadow">
-    <div class="p-4 border-b dark:border-gray-700">
-      <h2 class="text-lg font-semibold">Top Contributors</h2>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Sorted by current streak and contributions</p>
+  <div class="w-full bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Top Contributors</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Sorted by current streak and contributions</p>
     </div>
-    <div id="leaderboard" class="divide-y dark:divide-gray-700">
+    <div id="leaderboard" class="divide-y divide-gray-200 dark:divide-gray-700">
       <!-- Leaderboard items will be inserted here by JavaScript -->
     </div>
   </div>
