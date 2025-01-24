@@ -409,9 +409,13 @@ function getPageFromUrl() {
 document.addEventListener('DOMContentLoaded', () => {
   // Get initial page from URL
   const initialPage = getPageFromUrl();
-
-  // Load initial leaderboard
   loadLeaderboard(initialPage);
+
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', () => {
+    const page = getPageFromUrl();
+    loadLeaderboard(page);
+  });
 
   // Add event listeners for pagination if elements exist
   const prevBtn = document.getElementById('prev-page');
