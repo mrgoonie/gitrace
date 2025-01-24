@@ -1,127 +1,194 @@
 /* eslint-disable prettier/prettier */
+import NodeCache from "node-cache";
+
 import { getHtmlContent } from "@/lib/playwright";
 
-export async function fetchGitStats(username: string, year: number = new Date().getFullYear()) {
-  // use "getHtmlContent" to scrape stats
+// Cache for 1 hour
+const statsCache = new NodeCache({ stdTTL: 3600 });
+
+export async function fetchGitStats(
+  username: string,
+  year: number = new Date().getFullYear(),
+  options?: { debug: boolean }
+) {
+  const cacheKey = `${username}-${year}`;
+  const cachedStats = statsCache.get(cacheKey);
+  if (cachedStats) {
+    return cachedStats as any;
+  }
+
   const url = `https://github.com/${username}?tab=overview&from=${year}-01-01&to=${year}-12-31`;
 
-  const [[htmlTitle], [htmlAvatarUser], htmlGraphDots, htmlTooltips] = await Promise.all([
-    getHtmlContent(url, {
-      selectors: ["div[class='js-yearly-contributions'] h2"],
-      selectorMode: "first",
-      delayAfterLoad: 3000,
-      timeout: 120_000,
-    }) as Promise<string[]>,
-    getHtmlContent(url, {
-      selectors: ["img.avatar-user"],
-      selectorMode: "first",
-      delayAfterLoad: 3000,
-      timeout: 120_000,
-    }) as Promise<string[]>,
-    getHtmlContent(url, {
-      selectors: [".ContributionCalendar-grid .ContributionCalendar-day"],
+  // Updated selectors to match GitHub's latest DOM structure
+  const selectors = [
+    // Title - multiple possible selectors
+    "h2.js-yearly-contributions",
+    "div.js-yearly-contributions h2",
+    // Avatar - try multiple selectors
+    'img[alt*="Avatar"]',
+    "img.avatar",
+    "img.avatar-user",
+    'a[itemprop="image"] img',
+    'img[itemprop="image"]',
+    // Graph dots
+    "[data-date]",
+    // Tooltips
+    "tool-tip",
+  ];
+
+  try {
+    const htmlContent = await getHtmlContent(url, {
+      selectors,
       selectorMode: "all",
-      delayAfterLoad: 3000,
-      timeout: 120_000,
-    }) as Promise<string[]>,
-    getHtmlContent(url, {
-      selectors: ["tool-tip"],
-      selectorMode: "all",
-      delayAfterLoad: 3000,
-      timeout: 120_000,
-    }) as Promise<string[]>,
-  ]);
+      delayAfterLoad: 2500, // Increased delay further
+      timeout: 60_000,
+      // debug: true,
+    });
 
-  // Extract total contributions from title
-  const totalContributions = parseInt(
-    htmlTitle.match(/(\d+(?:,\d+)*)\s+contributions/)![1].replace(/,/g, "")
-  );
-
-  // Extract avatar URL from avatar user element
-  const avatarUrl = (htmlAvatarUser.match(/src="([^"]+)"/)?.[1] || "").replace(/s=64/, "s=200");
-
-  // Extract daily stats from graph
-  let dailyStats: Record<string, number> = {};
-
-  htmlGraphDots.forEach((dotHtml) => {
-    // Extract date and tooltip ID
-    const dateMatch = dotHtml.match(/data-date="([^"]+)"/);
-    const componentId = dotHtml.match(/id="([^"]+)"/);
-
-    if (dateMatch && componentId) {
-      const date = dateMatch[1];
-      const tooltipFor = componentId[1];
-
-      // Extract contribution count from tooltip text
-      // Format: "X contributions on Month Day."
-      const tooltipText =
-        htmlTooltips
-          .find((tooltip) => tooltip.match(/for="([^"]+)"/)?.[1] === tooltipFor)
-          ?.match(/>([^"]+)<\//)?.[1] || "";
-
-      const _countStr = tooltipText.split(" ")[0];
-      const contributionCount = _countStr === "No" ? 0 : parseInt(_countStr, 10);
-      dailyStats[date] = contributionCount;
+    if (!htmlContent || !Array.isArray(htmlContent)) {
+      throw new Error(`Failed to fetch GitHub stats for user: ${username}`);
     }
-  });
 
-  // sort daily stats by date
-  const dates = Object.keys(dailyStats);
-  dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    // Find elements with more flexible matching
+    const contributionsTitle = htmlContent.find(
+      (html) =>
+        html.includes("contributions") &&
+        (html.includes("js-yearly-contributions") || html.includes("<h2"))
+    );
 
-  // create new sorted object
-  const sortedDailyStats = dates.reduce(
-    (acc, date) => {
-      acc[date] = dailyStats[date];
-      return acc;
-    },
-    {} as Record<string, number>
-  );
+    // More flexible avatar matching
+    const avatarElement = htmlContent.find(
+      (html) =>
+        html.includes("img") &&
+        (html.includes("avatar") ||
+          html.includes(`alt="${username}"`) ||
+          html.includes(`alt="@${username}"`) ||
+          html.includes('itemprop="image"'))
+    );
 
-  // console.log("dailyStats :>>", sortedDailyStats);
+    const htmlGraphDots = htmlContent.filter((html) => html.includes("data-date"));
+    const htmlTooltips = htmlContent.filter((html) => html.includes("tool-tip"));
 
-  // current streak
-  let currentStreak = 0;
-  const today = new Date().toISOString().split("T")[0];
+    // Log debug info
+    if (options?.debug)
+      console.log(`[GitStats Debug] ${username} - Found elements:`, {
+        hasTitle: !!contributionsTitle,
+        hasAvatar: !!avatarElement,
+        graphDotsCount: htmlGraphDots.length,
+        tooltipsCount: htmlTooltips.length,
+        titleContent: contributionsTitle,
+        avatarContent: avatarElement,
+      });
 
-  // Find the latest date with contributions
-  const latestDate = dates.reduce((latest, date) => {
-    if (date <= today && sortedDailyStats[date] > 0) {
-      return date;
+    // Only require title, make avatar optional
+    if (!contributionsTitle) {
+      throw new Error(
+        `Failed to find contributions data for user: ${username}. ` +
+          `This usually means the profile doesn't exist or is private.`
+      );
     }
-    return latest;
-  }, "");
 
-  // Calculate current streak from the latest date backwards
-  if (latestDate) {
-    for (const date of dates) {
-      if (date > latestDate) continue;
-      if (sortedDailyStats[date] === 0) break;
-      currentStreak++;
+    // Extract data using more efficient regex patterns with error handling
+    const contributionsMatch = contributionsTitle.match(/(\d+(?:,\d+)*)\s+contributions?/);
+    if (!contributionsMatch) {
+      console.log(`[GitStats Debug] ${username} - Title content:`, contributionsTitle);
+      throw new Error(`Failed to parse contributions count for user: ${username}`);
     }
+
+    const totalContributions = parseInt(contributionsMatch[1].replace(/,/g, "") || "0");
+
+    // Get avatar URL with fallback
+    let avatarUrl = "";
+    if (avatarElement) {
+      const avatarMatch = avatarElement.match(/src="([^"]+)"/);
+      if (avatarMatch) {
+        avatarUrl = avatarMatch[1].replace(/\?.*$/, "").replace(/s=\d+/, "s=200");
+      }
+    }
+    // Fallback to GitHub's default avatar if none found
+    if (!avatarUrl) {
+      avatarUrl = `https://avatars.githubusercontent.com/u/${username}?v=4&s=200`;
+    }
+
+    // Process daily stats more efficiently
+    const dailyStats: Record<string, number> = {};
+    const tooltipMap = new Map(
+      htmlTooltips.map((tooltip) => {
+        const forMatch = tooltip.match(/for="([^"]+)"/);
+        const textMatch = tooltip.match(/>([^<]+)</);
+        return [forMatch?.[1], textMatch?.[1]?.trim()];
+      })
+    );
+
+    htmlGraphDots.forEach((dotHtml) => {
+      const dateMatch = dotHtml.match(/data-date="([^"]+)"/);
+      const componentId = dotHtml.match(/id="([^"]+)"/);
+
+      if (dateMatch?.[1] && componentId?.[1]) {
+        const date = dateMatch[1];
+        const tooltipText = tooltipMap.get(componentId[1]) || "No contributions";
+        dailyStats[date] =
+          tooltipText === "No contributions" ? 0 : parseInt(tooltipText.split(" ")[0]) || 0;
+      }
+    });
+
+    // Sort dates more efficiently
+    const dates = Object.keys(dailyStats).sort();
+    const sortedDailyStats = Object.fromEntries(dates.map((date) => [date, dailyStats[date]]));
+
+    const today = new Date().toISOString().split("T")[0];
+    const latestDate = dates.reduce(
+      (latest, date) => (date <= today && sortedDailyStats[date] > 0 ? date : latest),
+      ""
+    );
+
+    // Calculate streaks more efficiently
+    let currentStreak = 0;
+    if (latestDate) {
+      const latestDateObj = new Date(latestDate);
+      const todayObj = new Date(today);
+      const diffDays = Math.floor(
+        (todayObj.getTime() - latestDateObj.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (diffDays <= 1) {
+        for (let i = dates.indexOf(latestDate); i >= 0; i--) {
+          if (sortedDailyStats[dates[i]] === 0) break;
+          currentStreak++;
+        }
+      }
+    }
+
+    // Calculate longest streak more efficiently
+    let longestStreak = 0;
+    let currentCount = 0;
+    dates.forEach((date) => {
+      if (sortedDailyStats[date] > 0) {
+        currentCount++;
+        longestStreak = Math.max(longestStreak, currentCount);
+      } else {
+        currentCount = 0;
+      }
+    });
+
+    const result = {
+      username,
+      year,
+      totalContributions,
+      avatarUrl,
+      dailyStats: sortedDailyStats,
+      currentStreak,
+      longestStreak,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    // Cache the results
+    statsCache.set(cacheKey, result);
+
+    return result;
+  } catch (error) {
+    // Add more context to the error
+    console.error(`[GitStats Error] Failed to fetch stats for ${username}:`, error);
+    throw error;
   }
-
-  // longest streak
-  let longestStreak = 0;
-  let currentCount = 0;
-
-  for (const date of dates) {
-    if (sortedDailyStats[date] > 0) {
-      currentCount++;
-      longestStreak = Math.max(longestStreak, currentCount);
-    } else {
-      currentCount = 0;
-    }
-  }
-
-  return {
-    username,
-    avatarUrl,
-    url,
-    year,
-    totalContributions,
-    currentStreak,
-    longestStreak,
-    dailyStats: sortedDailyStats,
-  };
 }
