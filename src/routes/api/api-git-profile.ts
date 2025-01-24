@@ -46,8 +46,6 @@ apiGitProfileRouter.get("/fetch", async (req, res) => {
         message: "Username is required",
       });
     const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear();
-    console.log("username :>>", username);
-    console.log("year :>>", year);
     const data = await fetchGitStats(username.toString(), year);
     return res.status(200).json({
       success: true,
