@@ -1,133 +1,126 @@
 /* eslint-disable prettier/prettier */
+import NodeCache from "node-cache";
+
 import { getHtmlContent } from "@/lib/playwright";
 
+// Cache for 1 hour
+const statsCache = new NodeCache({ stdTTL: 3600 });
+
 export async function fetchGitStats(username: string, year: number = new Date().getFullYear()) {
-  // use "getHtmlContent" to scrape stats
+  const cacheKey = `${username}-${year}`;
+  const cachedStats = statsCache.get(cacheKey);
+  if (cachedStats) {
+    return cachedStats as any;
+  }
+
   const url = `https://github.com/${username}?tab=overview&from=${year}-01-01&to=${year}-12-31`;
 
-  const [[htmlTitle], [htmlAvatarUser], htmlGraphDots, htmlTooltips] = await Promise.all([
-    getHtmlContent(url, {
-      selectors: ["div[class='js-yearly-contributions'] h2"],
-      selectorMode: "first",
-      delayAfterLoad: 3000,
-      timeout: 120_000,
-    }) as Promise<string[]>,
-    getHtmlContent(url, {
-      selectors: ["img.avatar-user"],
-      selectorMode: "first",
-      delayAfterLoad: 3000,
-      timeout: 120_000,
-    }) as Promise<string[]>,
-    getHtmlContent(url, {
-      selectors: [".ContributionCalendar-grid .ContributionCalendar-day"],
-      selectorMode: "all",
-      delayAfterLoad: 3000,
-      timeout: 120_000,
-    }) as Promise<string[]>,
-    getHtmlContent(url, {
-      selectors: ["tool-tip"],
-      selectorMode: "all",
-      delayAfterLoad: 3000,
-      timeout: 120_000,
-    }) as Promise<string[]>,
-  ]);
+  // Fetch all data in a single request with optimized selectors
+  const selectors = [
+    'div[class="js-yearly-contributions"] h2', // Title
+    "img.avatar-user", // Avatar
+    ".ContributionCalendar-grid .ContributionCalendar-day", // Graph dots
+    "tool-tip", // Tooltips
+  ];
 
-  // Extract total contributions from title
+  const htmlContent = await getHtmlContent(url, {
+    selectors,
+    selectorMode: "all",
+    // Start with shorter delay and increase if needed
+    delayAfterLoad: 1500,
+    timeout: 60_000,
+  });
+
+  if (!htmlContent || !Array.isArray(htmlContent)) {
+    throw new Error("Failed to fetch GitHub stats");
+  }
+
+  // Destructure the results more efficiently
+  const [htmlTitle] = htmlContent.filter((html) => html.includes("contributions"));
+  const [htmlAvatarUser] = htmlContent.filter((html) => html.includes("avatar-user"));
+  const htmlGraphDots = htmlContent.filter((html) => html.includes("data-date"));
+  const htmlTooltips = htmlContent.filter((html) => html.includes("tool-tip"));
+
+  // Extract data using more efficient regex patterns
   const totalContributions = parseInt(
-    htmlTitle.match(/(\d+(?:,\d+)*)\s+contributions/)![1].replace(/,/g, "")
+    htmlTitle.match(/(\d+(?:,\d+)*)\s+contributions/)?.[1]?.replace(/,/g, "") || "0"
+  );
+  const avatarUrl = htmlAvatarUser.match(/src="([^"]+)"/)?.[1]?.replace(/s=64/, "s=200") || "";
+
+  // Process daily stats more efficiently
+  const dailyStats: Record<string, number> = {};
+  const tooltipMap = new Map(
+    htmlTooltips.map((tooltip) => {
+      const forMatch = tooltip.match(/for="([^"]+)"/);
+      const textMatch = tooltip.match(/>([^<]+)</);
+      return [forMatch?.[1], textMatch?.[1]?.trim()];
+    })
   );
 
-  // Extract avatar URL from avatar user element
-  const avatarUrl = (htmlAvatarUser.match(/src="([^"]+)"/)?.[1] || "").replace(/s=64/, "s=200");
-
-  // Extract daily stats from graph
-  let dailyStats: Record<string, number> = {};
-
   htmlGraphDots.forEach((dotHtml) => {
-    // Extract date and tooltip ID
     const dateMatch = dotHtml.match(/data-date="([^"]+)"/);
     const componentId = dotHtml.match(/id="([^"]+)"/);
 
-    if (dateMatch && componentId) {
+    if (dateMatch?.[1] && componentId?.[1]) {
       const date = dateMatch[1];
-      const tooltipFor = componentId[1];
-
-      // Extract contribution count from tooltip text
-      // Format examples: 
-      // - "No contributions on Month Day."
-      // - "X contributions on Month Day."
-      const tooltipText =
-        htmlTooltips
-          .find((tooltip) => tooltip.match(/for="([^"]+)"/)?.[1] === tooltipFor)
-          ?.match(/>([^<]+)</)?.[1]?.trim() || "No contributions";
-
-      let contributionCount = 0;
-      if (tooltipText !== "No contributions") {
-        const countStr = tooltipText.split(" ")[0];
-        contributionCount = parseInt(countStr) || 0;
-      }
-      
-      dailyStats[date] = contributionCount;
+      const tooltipText = tooltipMap.get(componentId[1]) || "No contributions";
+      dailyStats[date] =
+        tooltipText === "No contributions" ? 0 : parseInt(tooltipText.split(" ")[0]) || 0;
     }
   });
 
-  // sort daily stats by date
-  const dates = Object.keys(dailyStats);
-  dates.sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  // Sort dates more efficiently
+  const dates = Object.keys(dailyStats).sort();
+  const sortedDailyStats = Object.fromEntries(dates.map((date) => [date, dailyStats[date]]));
 
-  // create new sorted object
-  const sortedDailyStats = dates.reduce(
-    (acc, date) => {
-      acc[date] = dailyStats[date];
-      return acc;
-    },
-    {} as Record<string, number>
+  const today = new Date().toISOString().split("T")[0];
+  const latestDate = dates.reduce(
+    (latest, date) => (date <= today && sortedDailyStats[date] > 0 ? date : latest),
+    ""
   );
 
-  // console.log("dailyStats :>>", sortedDailyStats);
-
-  // current streak
+  // Calculate streaks more efficiently
   let currentStreak = 0;
-  const today = new Date().toISOString().split("T")[0];
-
-  // Find the latest date with contributions
-  const latestDate = dates.reduce((latest, date) => {
-    if (date <= today && sortedDailyStats[date] > 0) {
-      return date;
-    }
-    return latest;
-  }, "");
-
-  // Calculate current streak from the latest date backwards
   if (latestDate) {
-    for (const date of dates) {
-      if (date > latestDate) continue;
-      if (sortedDailyStats[date] === 0) break;
-      currentStreak++;
+    const latestDateObj = new Date(latestDate);
+    const todayObj = new Date(today);
+    const diffDays = Math.floor(
+      (todayObj.getTime() - latestDateObj.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffDays <= 1) {
+      for (let i = dates.indexOf(latestDate); i >= 0; i--) {
+        if (sortedDailyStats[dates[i]] === 0) break;
+        currentStreak++;
+      }
     }
   }
 
-  // longest streak
+  // Calculate longest streak more efficiently
   let longestStreak = 0;
   let currentCount = 0;
-
-  for (const date of dates) {
+  dates.forEach((date) => {
     if (sortedDailyStats[date] > 0) {
       currentCount++;
       longestStreak = Math.max(longestStreak, currentCount);
     } else {
       currentCount = 0;
     }
-  }
+  });
 
-  return {
+  const result = {
     username,
-    avatarUrl,
-    url,
     year,
     totalContributions,
+    avatarUrl,
+    dailyStats: sortedDailyStats,
     currentStreak,
     longestStreak,
-    dailyStats: sortedDailyStats,
+    lastUpdated: new Date().toISOString(),
   };
+
+  // Cache the results
+  statsCache.set(cacheKey, result);
+
+  return result;
 }
