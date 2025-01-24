@@ -3,6 +3,8 @@ import NodeCache from "node-cache";
 
 import { getHtmlContent } from "@/lib/playwright";
 
+import type { GitStats } from "./schema";
+
 // Cache for 1 hour
 const statsCache = new NodeCache({ stdTTL: 3600 });
 
@@ -14,7 +16,7 @@ export async function fetchGitStats(
   const cacheKey = `${username}-${year}`;
   const cachedStats = statsCache.get(cacheKey);
   if (cachedStats) {
-    return cachedStats as any;
+    return cachedStats as GitStats;
   }
 
   const url = `https://github.com/${username}?tab=overview&from=${year}-01-01&to=${year}-12-31`;
@@ -171,8 +173,9 @@ export async function fetchGitStats(
       }
     });
 
-    const result = {
+    const result: GitStats = {
       username,
+      url,
       year,
       totalContributions,
       avatarUrl,
