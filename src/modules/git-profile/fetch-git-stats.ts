@@ -53,14 +53,20 @@ export async function fetchGitStats(username: string, year: number = new Date().
       const tooltipFor = componentId[1];
 
       // Extract contribution count from tooltip text
-      // Format: "X contributions on Month Day."
+      // Format examples: 
+      // - "No contributions on Month Day."
+      // - "X contributions on Month Day."
       const tooltipText =
         htmlTooltips
           .find((tooltip) => tooltip.match(/for="([^"]+)"/)?.[1] === tooltipFor)
-          ?.match(/>([^"]+)<\//)?.[1] || "";
+          ?.match(/>([^<]+)</)?.[1]?.trim() || "No contributions";
 
-      const _countStr = tooltipText.split(" ")[0];
-      const contributionCount = _countStr === "No" ? 0 : parseInt(_countStr, 10);
+      let contributionCount = 0;
+      if (tooltipText !== "No contributions") {
+        const countStr = tooltipText.split(" ")[0];
+        contributionCount = parseInt(countStr) || 0;
+      }
+      
       dailyStats[date] = contributionCount;
     }
   });
