@@ -23,8 +23,8 @@ export async function fetchGitStats(
 
   try {
     const html = await getHtmlContent(url, {
-      debug: true, // Always enable debug for now
-      delayAfterLoad: 10000, // Increase to 10s
+      debug: false, // Always enable debug for now
+      delayAfterLoad: 5000, // Increase to 10s
       timeout: 60000, // Increase to 60s
       headers: {
         "User-Agent":

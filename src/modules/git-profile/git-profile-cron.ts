@@ -36,7 +36,7 @@ async function updateGitStats() {
         batch.map(async (profile) => {
           try {
             const currentYear = new Date().getFullYear();
-            const stats = await fetchGitStats(profile.username, currentYear, { debug: true });
+            const stats = await fetchGitStats(profile.username, currentYear, { debug: false });
 
             // Update git profile if anything changed
             if (stats.url !== profile.url || stats.avatarUrl !== profile.avatar) {
