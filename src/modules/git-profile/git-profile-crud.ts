@@ -27,14 +27,42 @@ export async function getGitProfileList(
       prisma.gitProfile.findMany({
         where,
         include: {
-          yearlyStats: true,
+          yearlyStats: {
+            orderBy: {
+              year: "desc",
+            },
+            take: 1,
+          },
+        },
+        orderBy: {
+          yearlyStats: {
+            _count: "desc",
+          },
         },
         skip: (page - 1) * perPage,
         take: perPage,
       }),
     ]);
 
-    return { list: profiles, pagination: { page, perPage, total } };
+    // Sort profiles by current streak and contributions
+    const sortedProfiles = profiles.sort((a, b) => {
+      const aStats = a.yearlyStats[0];
+      const bStats = b.yearlyStats[0];
+
+      if (!aStats && !bStats) return 0;
+      if (!aStats) return 1;
+      if (!bStats) return -1;
+
+      // First sort by current streak
+      if (aStats.currentStreak !== bStats.currentStreak) {
+        return bStats.currentStreak - aStats.currentStreak;
+      }
+
+      // Then by contributions
+      return bStats.contributions - aStats.contributions;
+    });
+
+    return { list: sortedProfiles, pagination: { page, perPage, total } };
   } catch (error) {
     throw new ApiError({
       code: "INTERNAL_SERVER_ERROR",
