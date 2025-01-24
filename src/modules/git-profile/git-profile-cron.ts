@@ -10,7 +10,7 @@ import {
 import { fetchGitStats } from "./fetch-git-stats";
 import { createYearlyStats, updateYearlyStats } from "./git-profile-crud";
 
-const batchSize = 20; // Process 20 profiles at a time to avoid overloading Playwright
+const batchSize = 10; // Process 10 profiles at a time to avoid overloading Playwright
 
 async function updateGitStats() {
   console.log(`--------- UPDATING STATS ${dayjs().format("YYYY-MM-DD HH:mm:ss")} ---------`);
