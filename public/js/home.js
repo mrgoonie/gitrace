@@ -176,15 +176,13 @@ function renderContributionGraph(dailyStats, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  console.log({ dailyStats })
-
   // Calculate color intensity based on contributions
   const getColor = (count) => {
-    if (count === 0) return 'bg-gray-100 dark:bg-gray-900';
-    if (count <= 5) return 'bg-green-100 dark:bg-green-700';
-    if (count <= 10) return 'bg-green-300 dark:bg-green-500';
-    if (count <= 20) return 'bg-green-500 dark:bg-green-300';
-    return 'bg-green-700 dark:bg-green-100';
+    if (count === 0) return 'bg-gray-100 dark:bg-gray-800';
+    if (count <= 5) return 'bg-green-100 dark:bg-green-900';
+    if (count <= 10) return 'bg-green-300 dark:bg-green-700';
+    if (count <= 20) return 'bg-green-500 dark:bg-green-500';
+    return 'bg-green-700 dark:bg-green-300';
   };
 
   // Process daily stats object and sort by date
@@ -268,7 +266,7 @@ function renderContributionGraph(dailyStats, containerId) {
 
   // Create week columns
   const graphHtml = `
-    <div class="flex gap-1 p-4">
+    <div class="flex gap-1 p-4 overflow-auto">
       <div class="flex flex-col gap-1">
         ${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => `
           <div class="h-3 w-3 flex items-center justify-center text-xs text-gray-400">
