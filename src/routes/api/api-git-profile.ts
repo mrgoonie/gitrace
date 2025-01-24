@@ -14,12 +14,12 @@ export const apiGitProfileRouter = express.Router();
 
 apiGitProfileRouter.get("/", async (req, res) => {
   try {
-    const { page = 1, itemsPerPage = 50 } = req.query;
+    const { page = 1, perPage = 50 } = req.query;
     const data = await getGitProfileList(
       {},
       {
-        skip: (parseInt(page.toString()) - 1) * parseInt(itemsPerPage.toString()),
-        take: parseInt(itemsPerPage.toString()),
+        page: parseInt(page.toString()),
+        perPage: parseInt(perPage.toString()),
       }
     );
     return res.status(200).json({

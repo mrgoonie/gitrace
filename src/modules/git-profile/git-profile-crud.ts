@@ -17,17 +17,24 @@ export type GitProfileWithStats = GitProfile & {
 
 export async function getGitProfileList(
   where: Prisma.GitProfileWhereInput = {},
-  options?: { skip?: number; take?: number }
+  options?: { page?: number; perPage?: number }
 ) {
   try {
-    const profiles = await prisma.gitProfile.findMany({
-      where,
-      include: {
-        yearlyStats: true,
-      },
-      ...options,
-    });
-    return profiles;
+    const { page = 1, perPage = 10 } = options ?? {};
+
+    const [total, profiles] = await Promise.all([
+      prisma.gitProfile.count({ where }),
+      prisma.gitProfile.findMany({
+        where,
+        include: {
+          yearlyStats: true,
+        },
+        skip: (page - 1) * perPage,
+        take: perPage,
+      }),
+    ]);
+
+    return { list: profiles, pagination: { page, perPage, total } };
   } catch (error) {
     throw new ApiError({
       code: "INTERNAL_SERVER_ERROR",
