@@ -69,6 +69,8 @@
     "@aws-sdk/client-s3": "^3.679.0",
     "@lucia-auth/adapter-prisma": "^4.0.1",
     "@lucia-auth/adapter-sqlite": "^3.0.2",
+    "@octokit/graphql": "^8.1.2",
+    "@octokit/rest": "^21.1.0",
     "@polar-sh/sdk": "^0.15.1",
     "@prisma/adapter-pg": "^5.21.1",
     "@prisma/client": "^5.21.1",

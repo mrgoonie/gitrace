@@ -147,8 +147,14 @@ async function toggleContributionGraph(username) {
         throw new Error('Profile data not found');
       }
 
+      // Get the dates data and ensure it's not null
+      const dates = profile.yearlyStats[0].dates;
+      if (!dates) {
+        throw new Error('No contribution data available');
+      }
+
       // Render contribution graph with dates data
-      renderContributionGraph(profile.yearlyStats[0].dates, `graph-container-${username}`);
+      renderContributionGraph(dates, `graph-container-${username}`);
     } catch (error) {
       console.error('Error:', error);
       showToast('error', error.message);
@@ -161,114 +167,72 @@ async function toggleContributionGraph(username) {
   }
 }
 
-// dailyStats = {
-//   "2025-01-01": 2,
-//   "2025-01-02": 25,
-//   "2025-01-03": 1,
-//   "2025-01-04": 2,
-//   "2025-01-05": 9,
-//   "2025-01-06": 1,
-//   "2025-01-07": 1,
-//   "2025-01-08": 6,
-//   ...
-// }
+// Calculate color intensity based on contributions
+function getColor(count) {
+  if (count === 0) return 'bg-gray-100 dark:bg-gray-900';
+  if (count <= 5) return 'bg-green-100 dark:bg-green-900';
+  if (count <= 10) return 'bg-green-300 dark:bg-green-700';
+  if (count <= 20) return 'bg-green-500 dark:bg-green-500';
+  return 'bg-green-700 dark:bg-green-300';
+}
+
+// Render contribution graph
 function renderContributionGraph(dailyStats, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // Calculate color intensity based on contributions
-  const getColor = (count) => {
-    if (count === 0) return 'bg-gray-100 dark:bg-gray-800';
-    if (count <= 5) return 'bg-green-100 dark:bg-green-900';
-    if (count <= 10) return 'bg-green-300 dark:bg-green-700';
-    if (count <= 20) return 'bg-green-500 dark:bg-green-500';
-    return 'bg-green-700 dark:bg-green-300';
-  };
+  // Create a map of dates to contribution counts, filtering for current year only
+  const currentYear = dayjs().year();
+  const dateMap = new Map();
+  Object.entries(dailyStats).forEach(([date, count]) => {
+    if (dayjs(date).year() === currentYear) {
+      dateMap.set(date, count);
+    }
+  });
 
-  // Process daily stats object and sort by date
-  const sortedDates = Object.entries(dailyStats)
-    .sort(([dateA], [dateB]) => dayjs(dateA).diff(dayjs(dateB)))
-    .reduce((acc, [date, count]) => {
-      acc[date] = count;
-      return acc;
-    }, {});
+  // Calculate date range (current year only)
+  const endDate = dayjs();
+  const startDate = dayjs().startOf('year'); // Start from beginning of current year
 
   // Create week columns
   const weeks = [];
   let currentWeek = {};
-
-  // Find the start date (should be the earliest date in the data)
-  const startDate = dayjs(Object.keys(sortedDates)[0]);
-  const endDate = dayjs(Object.keys(sortedDates)[Object.keys(sortedDates).length - 1]);
-  const currentYear = dayjs().year();
   let currentDate = startDate;
 
-  // Fill in the days before the start date to complete the first week
-  const firstDayOfWeek = startDate.day();
-  if (firstDayOfWeek !== 1) { // If not Monday
-    const daysToFill = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
-    let fillDate = startDate.subtract(daysToFill, 'day');
-    for (let i = 0; i < daysToFill; i++) {
-      const dayIndex = fillDate.day();
-      const adjustedDayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-      currentWeek[adjustedDayIndex] = {
-        date: fillDate.format('YYYY-MM-DD'),
-        count: 0,
-        isToday: false,
-        isFuture: false,
-        hidden: fillDate.year() !== currentYear
-      };
-      fillDate = fillDate.add(1, 'day');
-    }
-  }
-
-  while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, 'day')) {
+  // Fill in all dates until the end of the year
+  const yearEndDate = dayjs().endOf('year');
+  while (currentDate.isBefore(yearEndDate) || currentDate.isSame(yearEndDate, 'day')) {
     const dateStr = currentDate.format('YYYY-MM-DD');
     const dayOfWeek = currentDate.day();
-    const adjustedDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    const isToday = currentDate.isSame(dayjs(), 'day');
-    const isFuture = currentDate.isAfter(dayjs(), 'day');
+    const adjustedDayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert Sunday (0) to 6
 
+    // Start a new week if it's Monday
     if (adjustedDayIndex === 0 && Object.keys(currentWeek).length > 0) {
       weeks.push(currentWeek);
       currentWeek = {};
     }
 
+    // Add the day to the current week
     currentWeek[adjustedDayIndex] = {
       date: dateStr,
-      count: sortedDates[dateStr] || 0,
-      isToday,
-      isFuture,
-      hidden: currentDate.year() !== currentYear
+      count: dateMap.get(dateStr) || 0,
+      isToday: currentDate.isSame(dayjs(), 'day'),
+      isFuture: currentDate.isAfter(dayjs(), 'day')
     };
 
     currentDate = currentDate.add(1, 'day');
   }
 
-  // Fill in remaining days of the last week if needed
-  const lastDayIndex = (currentDate.day() + 6) % 7;
-  if (lastDayIndex !== 0) {
-    for (let i = lastDayIndex; i < 7; i++) {
-      currentWeek[i] = {
-        date: currentDate.format('YYYY-MM-DD'),
-        count: 0,
-        isToday: false,
-        isFuture: false,
-        hidden: currentDate.year() !== currentYear
-      };
-      currentDate = currentDate.add(1, 'day');
-    }
-  }
-
+  // Add the last week if it has any days
   if (Object.keys(currentWeek).length > 0) {
     weeks.push(currentWeek);
   }
 
-  // Create week columns
+  // Create the HTML for the graph
   const graphHtml = `
     <div class="flex gap-1 p-4 overflow-auto">
       <div class="flex flex-col gap-1">
-        ${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => `
+        ${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(day => `
           <div class="h-3 w-3 flex items-center justify-center text-xs text-gray-400">
             ${day}
           </div>
@@ -278,14 +242,17 @@ function renderContributionGraph(dailyStats, containerId) {
       ${weeks.map(week => `
         <div class="flex flex-col gap-1">
           ${[0, 1, 2, 3, 4, 5, 6].map(dayIndex => {
-    const day = week[dayIndex] || { date: '', count: 0, isToday: false, isFuture: false, hidden: true };
+    const day = week[dayIndex] || { date: '', count: 0, isToday: false, isFuture: false };
     const formattedDate = day.date ? dayjs(day.date).format('ddd, MMM D, YYYY') : '';
-    const tooltipText = formattedDate && !day.hidden ? `${formattedDate}: ${day.count} contribution${day.count !== 1 ? 's' : ''}` : '';
-    const colorClass = day.hidden ? 'invisible' : (day.isFuture ? 'bg-gray-50 dark:bg-gray-950' : getColor(day.count));
+    const tooltipText = formattedDate ? `${formattedDate}: ${day.count} contribution${day.count !== 1 ? 's' : ''}` : '';
+    const colorClass = day.isFuture ? 'bg-gray-50 dark:bg-gray-950' : getColor(day.count);
     const todayClass = day.isToday ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900' : '';
+    const pastClass = day.date === '' ? 'opacity-0' : '';
+
     return `
               <div 
-                class="w-3 h-3 rounded-sm ${colorClass} ${todayClass} relative group cursor-pointer" 
+                class="w-3 h-3 rounded-sm ${colorClass} ${todayClass} ${pastClass} relative group cursor-pointer" 
+                ${tooltipText ? `title="${tooltipText}"` : ''}
               >
                 ${tooltipText ? `
                   <div class="hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 dark:bg-gray-700">

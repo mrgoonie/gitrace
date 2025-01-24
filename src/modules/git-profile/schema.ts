@@ -5,7 +5,7 @@ export const GitStatsSchema = z.object({
   url: z.string().url(),
   year: z.number(),
   totalContributions: z.number(),
-  avatarUrl: z.string().url(),
+  avatarUrl: z.string().url().nullable().optional(),
   dailyStats: z.record(z.string(), z.number()),
   currentStreak: z.number(),
   longestStreak: z.number(),

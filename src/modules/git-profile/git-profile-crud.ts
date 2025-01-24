@@ -264,7 +264,10 @@ export async function createYearlyStats(
 ): Promise<YearlyStats> {
   try {
     // Validate input
-    const validatedData = createYearlyStatsSchema.parse(input);
+    const validatedData = createYearlyStatsSchema.parse({
+      ...input,
+      dates: input.dates || {}, // Ensure dates is at least an empty object if null
+    });
 
     // Check if profile exists
     const existingProfile = await prisma.gitProfile.findUnique({
@@ -293,10 +296,11 @@ export async function createYearlyStats(
       });
     }
 
-    // Create stats
+    // Create stats with dates
     const stats = await prisma.yearlyStats.create({
       data: {
         ...validatedData,
+        dates: validatedData.dates || {}, // Ensure dates is saved as an object
         profileId,
         userId,
       },
@@ -320,37 +324,55 @@ export async function updateYearlyStats(
   id: string,
   input: typeof updateYearlyStatsSchema._type
 ): Promise<YearlyStats> {
-  try {
-    // Validate input
-    const validatedData = updateYearlyStatsSchema.parse(input);
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000; // 1 second
 
-    // Check if stats exist
-    const existingStats = await prisma.yearlyStats.findUnique({
-      where: { id },
-    });
+  const retryOperation = async (attempt: number): Promise<YearlyStats> => {
+    try {
+      // Validate input and ensure dates is an object
+      const validatedData = updateYearlyStatsSchema.parse({
+        ...input,
+        dates: input.dates || {}, // Ensure dates is at least an empty object if null
+      });
 
-    if (!existingStats) {
+      // Check if stats exist
+      const existingStats = await prisma.yearlyStats.findUnique({
+        where: { id },
+      });
+
+      if (!existingStats) {
+        throw new ApiError({
+          code: "NOT_FOUND",
+          message: "Yearly stats not found",
+        });
+      }
+
+      // Update stats with dates
+      const stats = await prisma.yearlyStats.update({
+        where: { id },
+        data: {
+          ...validatedData,
+          dates: validatedData.dates || {}, // Ensure dates is saved as an object
+          updatedAt: new Date(),
+        },
+      });
+
+      return stats;
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      if (attempt < MAX_RETRIES) {
+        await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+        return retryOperation(attempt + 1);
+      }
       throw new ApiError({
-        code: "NOT_FOUND",
-        message: "Yearly stats not found",
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to update yearly stats",
+        cause: error,
       });
     }
+  };
 
-    // Update stats
-    const stats = await prisma.yearlyStats.update({
-      where: { id },
-      data: validatedData,
-    });
-
-    return stats;
-  } catch (error) {
-    if (error instanceof ApiError) throw error;
-    throw new ApiError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Failed to update yearly stats",
-      cause: error,
-    });
-  }
+  return retryOperation(1);
 }
 
 /**
