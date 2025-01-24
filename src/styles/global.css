@@ -75,3 +75,24 @@
 .group-ad-category.active {
   @apply bg-brand-secondary text-white;
 }
+
+/* Tippy.js theme */
+.tippy-box[data-theme~="gitrace"] {
+  @apply bg-gray-800 text-white dark:bg-gray-700;
+}
+
+.tippy-box[data-theme~="gitrace"][data-placement^="top"] > .tippy-arrow::before {
+  @apply border-t-gray-800 dark:border-t-gray-700;
+}
+
+.tippy-box[data-theme~="gitrace"][data-placement^="bottom"] > .tippy-arrow::before {
+  @apply border-b-gray-800 dark:border-b-gray-700;
+}
+
+.tippy-box[data-theme~="gitrace"][data-placement^="left"] > .tippy-arrow::before {
+  @apply border-l-gray-800 dark:border-l-gray-700;
+}
+
+.tippy-box[data-theme~="gitrace"][data-placement^="right"] > .tippy-arrow::before {
+  @apply border-r-gray-800 dark:border-r-gray-700;
+}
