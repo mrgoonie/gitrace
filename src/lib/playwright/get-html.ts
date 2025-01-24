@@ -21,17 +21,18 @@ interface HtmlContentOptions {
  * @returns A promise that resolves to the HTML content.
  */
 export async function getHtmlContent(url: string, options: HtmlContentOptions = {}) {
-  console.log("get-html.ts > getHtmlContent() > Fetching HTML content :>>", url);
+  if (options.debug) console.log("get-html.ts > getHtmlContent() > Fetching HTML content :>>", url);
 
   async function attemptGetHtmlContent(
     browserType: "firefox" | "chromium",
     useProxy = false
   ): Promise<string | string[]> {
-    console.log(
-      `get-html.ts > attemptGetHtmlContent() > Attempting with ${browserType}${
-        useProxy ? " (with proxy)" : " (no proxy)"
-      }`
-    );
+    if (options.debug)
+      console.log(
+        `get-html.ts > attemptGetHtmlContent() > Attempting with ${browserType}${
+          useProxy ? " (with proxy)" : " (no proxy)"
+        }`
+      );
 
     const browser = await browserPool.getBrowser(browserType);
 
@@ -53,11 +54,12 @@ export async function getHtmlContent(url: string, options: HtmlContentOptions = 
       page.setDefaultNavigationTimeout(options.timeout || 60_000);
 
       await page.goto(url, { waitUntil: "domcontentloaded" });
-      console.log(`get-html.ts > attemptGetHtmlContent() > Page loaded`);
+      if (options.debug) console.log(`get-html.ts > attemptGetHtmlContent() > Page loaded`);
 
       // Optional delay after page load
       if (options.delayAfterLoad) await wait(options.delayAfterLoad);
-      console.log(`get-html.ts > attemptGetHtmlContent() > HTML content extraction started`);
+      if (options.debug)
+        console.log(`get-html.ts > attemptGetHtmlContent() > HTML content extraction started`);
 
       // Remove potentially intrusive elements
       await page.evaluate(() => {
@@ -101,7 +103,8 @@ export async function getHtmlContent(url: string, options: HtmlContentOptions = 
         htmlContent = await page.content();
       }
 
-      console.log(`get-html.ts > attemptGetHtmlContent() > HTML content retrieved successfully`);
+      if (options.debug)
+        console.log(`get-html.ts > attemptGetHtmlContent() > HTML content retrieved successfully`);
       await page.close();
       await context.close();
 
@@ -115,30 +118,34 @@ export async function getHtmlContent(url: string, options: HtmlContentOptions = 
 
   try {
     // Try Firefox without proxy first
-    console.log("get-html.ts > getHtmlContent() > Attempting Firefox without proxy");
+    if (options.debug)
+      console.log("get-html.ts > getHtmlContent() > Attempting Firefox without proxy");
     return await attemptGetHtmlContent("firefox", false);
   } catch (error) {
-    console.log(
-      "get-html.ts > getHtmlContent() > Firefox without proxy failed, trying Firefox with proxy"
-    );
+    if (options.debug)
+      console.log(
+        "get-html.ts > getHtmlContent() > Firefox without proxy failed, trying Firefox with proxy"
+      );
     await wait(2000);
 
     try {
       // Try Firefox with proxy
       return await attemptGetHtmlContent("firefox", true);
     } catch (error) {
-      console.log(
-        "get-html.ts > getHtmlContent() > Firefox with proxy failed, trying Chromium with proxy"
-      );
+      if (options.debug)
+        console.log(
+          "get-html.ts > getHtmlContent() > Firefox with proxy failed, trying Chromium with proxy"
+        );
       await wait(2000);
 
       try {
         // Try Chromium with proxy
         return await attemptGetHtmlContent("chromium", true);
       } catch (error) {
-        console.log(
-          "get-html.ts > getHtmlContent() > Chromium with proxy failed, trying Chromium without proxy"
-        );
+        if (options.debug)
+          console.log(
+            "get-html.ts > getHtmlContent() > Chromium with proxy failed, trying Chromium without proxy"
+          );
         await wait(2000);
 
         try {

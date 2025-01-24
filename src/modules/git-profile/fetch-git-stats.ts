@@ -66,7 +66,7 @@ export async function fetchGitStats(username: string, year: number = new Date().
     {} as Record<string, number>
   );
 
-  console.log("dailyStats :>>", sortedDailyStats);
+  // console.log("dailyStats :>>", sortedDailyStats);
 
   // current streak
   let currentStreak = 0;
@@ -103,6 +103,8 @@ export async function fetchGitStats(username: string, year: number = new Date().
   }
 
   return {
+    username,
+    url,
     year,
     totalContributions,
     currentStreak,
