@@ -409,7 +409,7 @@ function getPageFromUrl() {
 document.addEventListener('DOMContentLoaded', () => {
   // Get initial page from URL
   const initialPage = getPageFromUrl();
-  
+
   // Load initial leaderboard
   loadLeaderboard(initialPage);
 

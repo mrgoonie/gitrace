@@ -103,11 +103,13 @@ apiGitProfileRouter.post("/", async (req, res) => {
 
     // Create profile and fetch stats
     const year = new Date().getFullYear();
-    const stats = await fetchGitStats(username, year);
+    const stats = await fetchGitStats(username, year, { debug: true });
+    console.log("stats :>> ", stats);
     const profile = await createGitProfile(
       {
         username: stats.username,
         url: stats.url,
+        avatar: stats.avatarUrl,
       },
       res.locals.user?.id
     );
