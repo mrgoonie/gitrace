@@ -32,20 +32,28 @@ export async function fetchGitStats(username: string, year: number = new Date().
   });
 
   if (!htmlContent || !Array.isArray(htmlContent)) {
-    throw new Error("Failed to fetch GitHub stats");
+    throw new Error(`Failed to fetch GitHub stats for user: ${username}`);
   }
 
-  // Destructure the results more efficiently
-  const [htmlTitle] = htmlContent.filter((html) => html.includes("contributions"));
-  const [htmlAvatarUser] = htmlContent.filter((html) => html.includes("avatar-user"));
+  // Destructure the results more efficiently with error handling
+  const contributionsTitle = htmlContent.find((html) => html.includes("contributions"));
+  const avatarElement = htmlContent.find((html) => html.includes("avatar-user"));
   const htmlGraphDots = htmlContent.filter((html) => html.includes("data-date"));
   const htmlTooltips = htmlContent.filter((html) => html.includes("tool-tip"));
 
-  // Extract data using more efficient regex patterns
-  const totalContributions = parseInt(
-    htmlTitle.match(/(\d+(?:,\d+)*)\s+contributions/)?.[1]?.replace(/,/g, "") || "0"
-  );
-  const avatarUrl = htmlAvatarUser.match(/src="([^"]+)"/)?.[1]?.replace(/s=64/, "s=200") || "";
+  if (!contributionsTitle || !avatarElement) {
+    throw new Error(`Failed to find required elements for user: ${username}`);
+  }
+
+  // Extract data using more efficient regex patterns with error handling
+  const contributionsMatch = contributionsTitle.match(/(\d+(?:,\d+)*)\s+contributions/);
+  if (!contributionsMatch) {
+    throw new Error(`Failed to parse contributions count for user: ${username}`);
+  }
+
+  const totalContributions = parseInt(contributionsMatch[1].replace(/,/g, "") || "0");
+  const avatarMatch = avatarElement.match(/src="([^"]+)"/);
+  const avatarUrl = avatarMatch ? avatarMatch[1].replace(/s=64/, "s=200") : "";
 
   // Process daily stats more efficiently
   const dailyStats: Record<string, number> = {};
