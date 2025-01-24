@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import cron from "node-cron";
 
 import { prisma } from "@/lib/db";
@@ -9,7 +10,10 @@ import {
 import { fetchGitStats } from "./fetch-git-stats";
 import { createYearlyStats, updateYearlyStats } from "./git-profile-crud";
 
+const batchSize = 10; // Process 10 profiles at a time to avoid overloading Playwright
+
 async function updateGitStats() {
+  console.log(`--------- UPDATING STATS ${dayjs().format("YYYY-MM-DD HH:mm:ss")} ---------`);
   try {
     // Get all git profiles
     const profiles = await prisma.gitProfile.findMany({
@@ -23,7 +27,6 @@ async function updateGitStats() {
     });
 
     // Process each profile in parallel with rate limiting
-    const batchSize = 5; // Process 5 profiles at a time to avoid overloading Playwright
     for (let i = 0; i < profiles.length; i += batchSize) {
       const batch = profiles.slice(i, i + batchSize);
 
@@ -71,7 +74,7 @@ async function updateGitStats() {
 
       // Add a delay between batches to avoid overloading
       if (i + batchSize < profiles.length) {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
   } catch (error) {
@@ -79,9 +82,9 @@ async function updateGitStats() {
   }
 }
 
-// Schedule cron job to run every minute
+// Schedule cron job to run every 5 minutes
 export function startGitStatsCron() {
   console.log("Starting git stats cron job...");
-  cron.schedule("*/2 * * * *", updateGitStats);
+  cron.schedule("*/5 * * * *", updateGitStats);
   updateGitStats();
 }
