@@ -1,13 +1,13 @@
 <!-- header area start -->
 <header class="header-style-one header--sticky <%= typeof page_slug !== 'undefined' ? page_slug : '' %> bg-white dark:bg-gray-900 shadow-sm dark:shadow-gray-800 border-b border-gray-100 dark:border-gray-800">
-  <div class="container mx-auto px-4">
+  <div class="container max-w-5xl mx-auto px-4">
     <div class="flex items-center justify-between py-4">
       <div class="logo-area">
         <a href="/" class="logo flex items-center text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">
           <i class="ri-copilot-fill text-2xl mr-2"></i> GitRace.dev
         </a>
       </div>
-      <nav class="hidden md:block">
+      <!-- <nav class="hidden md:block">
         <ul class="flex space-x-6">
           <li class="<%= path_name === "/" ? "text-blue-600 dark:text-blue-400 font-semibold" : "text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400" %>">
             <a href="/" class="transition-colors duration-300">Home</a>
@@ -19,7 +19,7 @@
             <a href="https://github.com/mrgoonie/url-review" target="_blank" class="transition-colors duration-300">Contribute</a>
           </li>
         </ul>
-      </nav>
+      </nav> -->
       <div class="flex items-center space-x-4">
         <% if (user) { %>
         <div class="flex items-center space-x-3">
@@ -39,9 +39,9 @@
           <i class="ri-moon-line hidden dark:block text-xl"></i>
         </button>
         <!-- mobile menu button -->
-        <button id="menu-btn" class="md:hidden text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+        <!-- <button id="menu-btn" class="md:hidden text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
           <i class="ri-menu-line text-2xl"></i>
-        </button>
+        </button> -->
       </div>
     </div>
   </div>
