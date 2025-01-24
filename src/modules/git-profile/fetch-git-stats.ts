@@ -21,77 +21,72 @@ export async function fetchGitStats(
 
   const url = `https://github.com/${username}?tab=overview&from=${year}-01-01&to=${year}-12-31`;
 
-  // Updated selectors to match GitHub's latest DOM structure
-  const selectors = [
-    // Title - multiple possible selectors
-    "h2.js-yearly-contributions",
-    "div.js-yearly-contributions h2",
-    // Avatar - try multiple selectors
-    'img[alt*="Avatar"]',
-    "img.avatar",
-    "img.avatar-user",
-    'a[itemprop="image"] img',
-    'img[itemprop="image"]',
-    // Graph dots
-    "[data-date]",
-    // Tooltips
-    "tool-tip",
-  ];
-
   try {
-    const htmlContent = await getHtmlContent(url, {
-      selectors,
-      selectorMode: "all",
-      delayAfterLoad: 2500, // Increased delay further
-      timeout: 60_000,
-      // debug: true,
+    const html = await getHtmlContent(url, {
+      debug: true, // Always enable debug for now
+      delayAfterLoad: 10000, // Increase to 10s
+      timeout: 60000, // Increase to 60s
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+      },
     });
 
-    if (!htmlContent || !Array.isArray(htmlContent)) {
-      throw new Error(`Failed to fetch GitHub stats for user: ${username}`);
+    if (!html || Array.isArray(html)) {
+      throw new Error(`Failed to fetch HTML content for user: ${username}`);
     }
 
-    // Find elements with more flexible matching
-    const contributionsTitle = htmlContent.find(
-      (html) =>
-        html.includes("contributions") &&
-        (html.includes("js-yearly-contributions") || html.includes("<h2"))
-    );
+    if (options?.debug) {
+      console.log(`[GitStats Debug] Raw HTML length for ${username}:`, html.length);
+      console.log(`[GitStats Debug] Raw HTML content for ${username}:`, html.slice(0, 500)); // Log first 500 chars
+    }
 
-    // More flexible avatar matching
-    const avatarElement = htmlContent.find(
-      (html) =>
-        html.includes("img") &&
-        (html.includes("avatar") ||
-          html.includes(`alt="${username}"`) ||
-          html.includes(`alt="@${username}"`) ||
-          html.includes('itemprop="image"'))
-    );
+    // Updated regex patterns for GitHub's current structure
+    const contributionsTitle =
+      html.match(/class="js-yearly-contributions"[^>]*>.*?<h2[^>]*>([^<]+)<\/h2>/is)?.[1]?.trim() ||
+      html.match(/class="ContributionCalendar-label"[^>]*>([^<]+)<\/h2>/is)?.[1]?.trim();
+    const avatarElement = html.match(/<img[^>]*class="[^"]*avatar[^"]*"[^>]*>/i)?.[0];
 
-    const htmlGraphDots = htmlContent.filter((html) => html.includes("data-date"));
-    const htmlTooltips = htmlContent.filter((html) => html.includes("tool-tip"));
+    // Updated selectors for contribution graph
+    const htmlGraphDots =
+      html.match(
+        /<td[^>]*data-level="[^"]*"[^>]*>|<rect[^>]*class="ContributionCalendar-day[^"]*"[^>]*>/gi
+      ) || [];
+    const htmlTooltips =
+      html.match(
+        /data-count="(\d+)[^"]*"[^>]*data-date="([^"]+)"|data-level="[^"]*"[^>]*data-date="([^"]+)"/gi
+      ) || [];
 
-    // Log debug info
-    if (options?.debug)
+    if (options?.debug) {
       console.log(`[GitStats Debug] ${username} - Found elements:`, {
         hasTitle: !!contributionsTitle,
         hasAvatar: !!avatarElement,
         graphDotsCount: htmlGraphDots.length,
         tooltipsCount: htmlTooltips.length,
         titleContent: contributionsTitle,
-        avatarContent: avatarElement,
+        avatarContent: avatarElement?.slice(0, 100), // Show first 100 chars of avatar element
       });
+    }
 
-    // Only require title, make avatar optional
-    if (!contributionsTitle) {
+    // Check for required elements
+    const missingElements = [];
+    if (!contributionsTitle) missingElements.push("contributions title");
+    if (!avatarElement) missingElements.push("avatar");
+    if (htmlGraphDots.length === 0) missingElements.push("contribution graph");
+
+    if (missingElements.length > 0) {
       throw new Error(
-        `Failed to find contributions data for user: ${username}. ` +
-          `This usually means the profile doesn't exist or is private.`
+        `Failed to find ${missingElements.join(
+          ", "
+        )} for user: ${username}. This usually means the profile doesn't exist or is private.`
       );
     }
 
     // Extract data using more efficient regex patterns with error handling
-    const contributionsMatch = contributionsTitle.match(/(\d+(?:,\d+)*)\s+contributions?/);
+    const contributionsMatch = contributionsTitle?.match(/(\d+(?:,\d+)*)\s+contributions?/);
     if (!contributionsMatch) {
       console.log(`[GitStats Debug] ${username} - Title content:`, contributionsTitle);
       throw new Error(`Failed to parse contributions count for user: ${username}`);
@@ -114,23 +109,22 @@ export async function fetchGitStats(
 
     // Process daily stats more efficiently
     const dailyStats: Record<string, number> = {};
-    const tooltipMap = new Map(
-      htmlTooltips.map((tooltip) => {
-        const forMatch = tooltip.match(/for="([^"]+)"/);
-        const textMatch = tooltip.match(/>([^<]+)</);
-        return [forMatch?.[1], textMatch?.[1]?.trim()];
-      })
-    );
+    // const tooltipMap = new Map(
+    //   htmlTooltips.map((tooltip) => {
+    //     const forMatch = tooltip.match(/data-date="([^"]+)"/);
+    //     const textMatch = tooltip.match(/data-count="(\d+)"/);
+    //     return [forMatch?.[1], textMatch?.[1]];
+    //   })
+    // );
 
     htmlGraphDots.forEach((dotHtml) => {
       const dateMatch = dotHtml.match(/data-date="([^"]+)"/);
-      const componentId = dotHtml.match(/id="([^"]+)"/);
+      const countMatch = dotHtml.match(/data-count="(\d+)"/);
 
-      if (dateMatch?.[1] && componentId?.[1]) {
+      if (dateMatch?.[1] && countMatch?.[1]) {
         const date = dateMatch[1];
-        const tooltipText = tooltipMap.get(componentId[1]) || "No contributions";
-        dailyStats[date] =
-          tooltipText === "No contributions" ? 0 : parseInt(tooltipText.split(" ")[0]) || 0;
+        const count = parseInt(countMatch[1]);
+        dailyStats[date] = count;
       }
     });
 

@@ -11,7 +11,7 @@ import { fetchGitStats } from "./fetch-git-stats";
 import { createYearlyStats, updateYearlyStats } from "./git-profile-crud";
 
 // Process a few profiles at a time to avoid overloading Playwright
-const batchSize = 10;
+const batchSize = 5;
 
 async function updateGitStats() {
   console.log(`--------- UPDATING STATS ${dayjs().format("YYYY-MM-DD HH:mm:ss")} ---------`);
@@ -36,7 +36,7 @@ async function updateGitStats() {
         batch.map(async (profile) => {
           try {
             const currentYear = new Date().getFullYear();
-            const stats = await fetchGitStats(profile.username, currentYear);
+            const stats = await fetchGitStats(profile.username, currentYear, { debug: true });
 
             // Update git profile if anything changed
             if (stats.url !== profile.url || stats.avatarUrl !== profile.avatar) {

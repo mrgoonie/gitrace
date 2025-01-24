@@ -12,6 +12,8 @@ interface HtmlContentOptions {
   selectors?: string[];
   /** Whether to return the first matching element or all matching elements */
   selectorMode?: "first" | "all";
+  /** Additional headers to send with the request */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -42,10 +44,12 @@ export async function getHtmlContent(url: string, options: HtmlContentOptions = 
           ? { ...options.proxy, bypass: "http://localhost:3000" }
           : undefined,
       userAgent:
+        options.headers?.["User-Agent"] ||
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       bypassCSP: true,
       ignoreHTTPSErrors: true,
       viewport: { width: 1400, height: 948 },
+      extraHTTPHeaders: options.headers,
     });
 
     try {
@@ -53,8 +57,28 @@ export async function getHtmlContent(url: string, options: HtmlContentOptions = 
       page.setDefaultTimeout(options.timeout || 60_000);
       page.setDefaultNavigationTimeout(options.timeout || 60_000);
 
-      await page.goto(url, { waitUntil: "domcontentloaded" });
+      await page.goto(url, { waitUntil: "networkidle" });
       if (options.debug) console.log(`get-html.ts > attemptGetHtmlContent() > Page loaded`);
+
+      // Wait for contribution elements with more specific selectors
+      try {
+        await Promise.all([
+          page.waitForSelector(".js-yearly-contributions, .ContributionCalendar-label", {
+            timeout: options.timeout || 60_000,
+          }),
+          page.waitForSelector(".js-calendar-graph-svg, [data-graph-url]", {
+            timeout: options.timeout || 60_000,
+          }),
+        ]);
+        if (options.debug)
+          console.log(`get-html.ts > attemptGetHtmlContent() > Contribution elements found`);
+      } catch (error) {
+        if (options.debug)
+          console.log(
+            `get-html.ts > attemptGetHtmlContent() > Failed to find contribution elements:`,
+            error
+          );
+      }
 
       // Optional delay after page load
       if (options.delayAfterLoad) await wait(options.delayAfterLoad);
