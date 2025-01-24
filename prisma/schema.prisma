@@ -84,6 +84,7 @@ model User {
     userPlans             UserPlan[]
     workspacePlans        WorkspacePlan[]
     GitProfile            GitProfile[]
+    YearlyStats           YearlyStats[]
 }
 
 model PasswordResetToken {
@@ -361,6 +362,7 @@ model YearlyStats {
     year          Int
     contributions Int    @default(0)
     longestStreak Int    @default(0)
+    currentStreak Int    @default(0)
     dates         Json?
 
     createdAt DateTime  @default(now())
@@ -368,4 +370,6 @@ model YearlyStats {
 
     profileId String
     profile   GitProfile @relation(fields: [profileId], references: [id])
+    userId    String?
+    user      User?      @relation(fields: [userId], references: [id])
 }

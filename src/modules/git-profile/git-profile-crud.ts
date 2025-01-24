@@ -3,6 +3,7 @@ import type { GitProfile, Prisma, YearlyStats } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import {
   createGitProfileSchema,
+  type CreateYearlyStatsSchema,
   createYearlyStatsSchema,
   updateGitProfileSchema,
   updateYearlyStatsSchema,
@@ -220,7 +221,8 @@ export async function deleteGitProfile(id: string): Promise<void> {
  */
 export async function createYearlyStats(
   profileId: string,
-  input: typeof createYearlyStatsSchema._type
+  input: CreateYearlyStatsSchema,
+  userId?: string
 ): Promise<YearlyStats> {
   try {
     // Validate input
@@ -258,6 +260,7 @@ export async function createYearlyStats(
       data: {
         ...validatedData,
         profileId,
+        userId,
       },
     });
 

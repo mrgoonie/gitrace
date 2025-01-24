@@ -2,8 +2,10 @@ import express from "express";
 
 import {
   createGitProfile,
+  createYearlyStats,
   fetchGitStats,
   getGitProfileById,
+  getGitProfileByUsername,
   getGitProfileList,
 } from "@/modules/git-profile";
 import { ApiError } from "@/modules/type";
@@ -83,17 +85,58 @@ apiGitProfileRouter.get("/:id", async (req, res) => {
 
 apiGitProfileRouter.post("/", async (req, res) => {
   try {
-    const data = await createGitProfile(req.body);
+    const { username } = req.body;
+
+    if (!username) {
+      return res.status(400).json({
+        success: false,
+        message: "Username is required",
+      });
+    }
+
+    // Check if profile already exists
+    const existingProfile = await getGitProfileByUsername(username);
+    if (existingProfile) {
+      return res.status(400).json({
+        success: false,
+        message: "Profile already exists",
+      });
+    }
+
+    // Create profile and fetch stats
+    const year = new Date().getFullYear();
+    const stats = await fetchGitStats(username, year);
+    const profile = await createGitProfile(
+      {
+        username: stats.username,
+        url: stats.url,
+      },
+      res.locals.user?.id
+    );
+
+    // Create yearly stats
+    await createYearlyStats(
+      profile.id,
+      {
+        year,
+        contributions: stats.totalContributions,
+        longestStreak: stats.longestStreak,
+        currentStreak: stats.currentStreak,
+        dates: stats.dailyStats,
+      },
+      res.locals.user?.id
+    );
+
     return res.status(201).json({
       success: true,
       message: "Git profile created successfully",
-      data,
+      data: profile,
     });
   } catch (error) {
     console.error("api-git-profile > POST / > error :>>", error);
-    return res.status(400).json({
+    return res.status(500).json({
       success: false,
-      message: "Failed to create git profile",
+      message: "Internal server error",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }

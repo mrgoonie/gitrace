@@ -5,6 +5,7 @@ export const yearlyStatsSchema = z.object({
   year: z.number().int().min(2000).max(new Date().getFullYear()),
   contributions: z.number().int().min(0),
   longestStreak: z.number().int().min(0),
+  currentStreak: z.number().int().min(0),
   dates: z
     .record(z.number())
     .transform((val) => val as any)
@@ -19,11 +20,8 @@ export const gitProfileSchema = z.object({
 // Create schemas
 export const createGitProfileSchema = gitProfileSchema;
 
-export const createYearlyStatsSchema = yearlyStatsSchema.omit({
-  contributions: true,
-  longestStreak: true,
-  dates: true,
-});
+export const createYearlyStatsSchema = yearlyStatsSchema;
+export type CreateYearlyStatsSchema = z.infer<typeof createYearlyStatsSchema>;
 
 // Update schemas
 export const updateGitProfileSchema = gitProfileSchema.partial();
