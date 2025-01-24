@@ -96,7 +96,7 @@ async function startServer() {
   const server = app.listen(env.PORT, () => {
     console.log(chalk.green(`🚀 Server running on port ${env.PORT}`));
   });
-  server.setTimeout(60_000);
+  server.setTimeout(120_000);
 
   // Handle graceful shutdown
   process.on("SIGTERM", async () => {

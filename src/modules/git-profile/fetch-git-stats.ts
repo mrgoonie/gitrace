@@ -10,21 +10,25 @@ export async function fetchGitStats(username: string, year: number = new Date().
       selectors: ["div[class='js-yearly-contributions'] h2"],
       selectorMode: "first",
       delayAfterLoad: 3000,
+      timeout: 120_000,
     }) as Promise<string[]>,
     getHtmlContent(url, {
       selectors: ["img.avatar-user"],
       selectorMode: "first",
       delayAfterLoad: 3000,
+      timeout: 120_000,
     }) as Promise<string[]>,
     getHtmlContent(url, {
       selectors: [".ContributionCalendar-grid .ContributionCalendar-day"],
       selectorMode: "all",
       delayAfterLoad: 3000,
+      timeout: 120_000,
     }) as Promise<string[]>,
     getHtmlContent(url, {
       selectors: ["tool-tip"],
       selectorMode: "all",
       delayAfterLoad: 3000,
+      timeout: 120_000,
     }) as Promise<string[]>,
   ]);
 
