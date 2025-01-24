@@ -1,4 +1,4 @@
-import type { GitProfile, YearlyStats } from "@prisma/client";
+import type { GitProfile, Prisma, YearlyStats } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 import {
@@ -13,6 +13,28 @@ import { ApiError } from "../type";
 export type GitProfileWithStats = GitProfile & {
   yearlyStats: YearlyStats[];
 };
+
+export async function getGitProfileList(
+  where: Prisma.GitProfileWhereInput = {},
+  options?: { skip?: number; take?: number }
+) {
+  try {
+    const profiles = await prisma.gitProfile.findMany({
+      where,
+      include: {
+        yearlyStats: true,
+      },
+      ...options,
+    });
+    return profiles;
+  } catch (error) {
+    throw new ApiError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to get git profile list",
+      cause: error,
+    });
+  }
+}
 
 /**
  * Create a new git profile for a user

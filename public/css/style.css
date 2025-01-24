@@ -694,6 +694,10 @@ input::placeholder {
   border-width: 0;
 }
 
+.pointer-events-none {
+  pointer-events: none;
+}
+
 .visible {
   visibility: visible;
 }
@@ -915,6 +919,10 @@ input::placeholder {
   margin-top: 2rem;
 }
 
+.mb-12 {
+  margin-bottom: 3rem;
+}
+
 .block {
   display: block;
 }
@@ -1094,6 +1102,14 @@ input::placeholder {
 
 .max-w-screen-sm {
   max-width: 640px;
+}
+
+.max-w-6xl {
+  max-width: 72rem;
+}
+
+.max-w-lg {
+  max-width: 32rem;
 }
 
 .flex-1 {
@@ -1782,6 +1798,10 @@ input::placeholder {
 
 .pt-80 {
   padding-top: 20rem;
+}
+
+.pl-3 {
+  padding-left: 0.75rem;
 }
 
 .text-left {
@@ -2628,6 +2648,16 @@ input::placeholder {
 .dark\:text-yellow-400:where(class, class *) {
   --tw-text-opacity: 1;
   color: rgb(250 204 21 / var(--tw-text-opacity));
+}
+
+.dark\:placeholder-gray-400:where(class, class *)::-moz-placeholder {
+  --tw-placeholder-opacity: 1;
+  color: rgb(156 163 175 / var(--tw-placeholder-opacity));
+}
+
+.dark\:placeholder-gray-400:where(class, class *)::placeholder {
+  --tw-placeholder-opacity: 1;
+  color: rgb(156 163 175 / var(--tw-placeholder-opacity));
 }
 
 .dark\:checked\:border-indigo-500:checked:where(class, class *) {

@@ -1,9 +1,39 @@
 import express from "express";
 
-import { createGitProfile, fetchGitStats, getGitProfileById } from "@/modules/git-profile";
+import {
+  createGitProfile,
+  fetchGitStats,
+  getGitProfileById,
+  getGitProfileList,
+} from "@/modules/git-profile";
 import { ApiError } from "@/modules/type";
 
 export const apiGitProfileRouter = express.Router();
+
+apiGitProfileRouter.get("/", async (req, res) => {
+  try {
+    const { page = 1, itemsPerPage = 50 } = req.query;
+    const data = await getGitProfileList(
+      {},
+      {
+        skip: (parseInt(page.toString()) - 1) * parseInt(itemsPerPage.toString()),
+        take: parseInt(itemsPerPage.toString()),
+      }
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Git profile retrieved successfully",
+      data,
+    });
+  } catch (error) {
+    console.error("api-git-profile > GET / > error :>>", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 apiGitProfileRouter.get("/fetch", async (req, res) => {
   try {

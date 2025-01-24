@@ -5,9 +5,14 @@ export async function fetchGitStats(username: string, year: number = new Date().
   // use "getHtmlContent" to scrape stats
   const url = `https://github.com/${username}?tab=overview&from=${year}-01-01&to=${year}-12-31`;
 
-  const [[htmlTitle], htmlGraphDots, htmlTooltips] = await Promise.all([
+  const [[htmlTitle], [htmlAvatarUser], htmlGraphDots, htmlTooltips] = await Promise.all([
     getHtmlContent(url, {
       selectors: ["div[class='js-yearly-contributions'] h2"],
+      selectorMode: "first",
+      delayAfterLoad: 3000,
+    }) as Promise<string[]>,
+    getHtmlContent(url, {
+      selectors: ["img.avatar-user"],
       selectorMode: "first",
       delayAfterLoad: 3000,
     }) as Promise<string[]>,
@@ -27,6 +32,9 @@ export async function fetchGitStats(username: string, year: number = new Date().
   const totalContributions = parseInt(
     htmlTitle.match(/(\d+(?:,\d+)*)\s+contributions/)![1].replace(/,/g, "")
   );
+
+  // Extract avatar URL from avatar user element
+  const avatarUrl = (htmlAvatarUser.match(/src="([^"]+)"/)?.[1] || "").replace(/s=64/, "s=200");
 
   // Extract daily stats from graph
   let dailyStats: Record<string, number> = {};
@@ -104,6 +112,7 @@ export async function fetchGitStats(username: string, year: number = new Date().
 
   return {
     username,
+    avatarUrl,
     url,
     year,
     totalContributions,
