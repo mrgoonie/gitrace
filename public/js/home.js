@@ -387,10 +387,31 @@ function showToast(type, message) {
   }, 3000);
 }
 
+// Update URL with current page
+function updatePageUrl(page) {
+  const url = new URL(window.location);
+  if (page === 1) {
+    url.searchParams.delete('page');
+  } else {
+    url.searchParams.set('page', page);
+  }
+  window.history.pushState({}, '', url);
+}
+
+// Get page from URL
+function getPageFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const page = parseInt(urlParams.get('page')) || 1;
+  return page;
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  // Get initial page from URL
+  const initialPage = getPageFromUrl();
+  
   // Load initial leaderboard
-  loadLeaderboard(1);
+  loadLeaderboard(initialPage);
 
   // Add event listeners for pagination if elements exist
   const prevBtn = document.getElementById('prev-page');
@@ -399,7 +420,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (prevBtn) {
     prevBtn.addEventListener('click', () => {
       if (currentPage > 1) {
-        loadLeaderboard(currentPage - 1);
+        const newPage = currentPage - 1;
+        loadLeaderboard(newPage);
+        updatePageUrl(newPage);
       }
     });
   }
@@ -407,7 +430,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (nextBtn) {
     nextBtn.addEventListener('click', () => {
       if (currentPage < totalPages) {
-        loadLeaderboard(currentPage + 1);
+        const newPage = currentPage + 1;
+        loadLeaderboard(newPage);
+        updatePageUrl(newPage);
       }
     });
   }
