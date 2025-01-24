@@ -22,27 +22,18 @@ export async function getGitProfileList(
   try {
     const { page = 1, perPage = 10 } = options ?? {};
 
-    const [total, profiles] = await Promise.all([
-      prisma.gitProfile.count({ where }),
-      prisma.gitProfile.findMany({
-        where,
-        include: {
-          yearlyStats: {
-            orderBy: {
-              year: "desc",
-            },
-            take: 1,
+    // First get all profiles with their latest yearly stats
+    const profiles = await prisma.gitProfile.findMany({
+      where,
+      include: {
+        yearlyStats: {
+          orderBy: {
+            year: "desc",
           },
+          take: 1,
         },
-        orderBy: {
-          yearlyStats: {
-            _count: "desc",
-          },
-        },
-        skip: (page - 1) * perPage,
-        take: perPage,
-      }),
-    ]);
+      },
+    });
 
     // Sort profiles by current streak and contributions
     const sortedProfiles = profiles.sort((a, b) => {
@@ -62,7 +53,15 @@ export async function getGitProfileList(
       return bStats.contributions - aStats.contributions;
     });
 
-    return { list: sortedProfiles, pagination: { page, perPage, total } };
+    // Apply pagination to sorted results
+    const total = sortedProfiles.length;
+    const start = (page - 1) * perPage;
+    const paginatedProfiles = sortedProfiles.slice(start, start + perPage);
+
+    return {
+      list: paginatedProfiles,
+      pagination: { page, perPage, total },
+    };
   } catch (error) {
     throw new ApiError({
       code: "INTERNAL_SERVER_ERROR",
