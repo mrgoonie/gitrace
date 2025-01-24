@@ -20,7 +20,6 @@ import { pageRouter } from "@/routes/pages";
 
 import { swaggerOptions } from "./config";
 import { fetchListAIModels } from "./lib/ai/models";
-import { createInitialCategories } from "./modules/category";
 import { polarWebhookRouter } from "./routes/webhooks/polar-webhook";
 
 declare global {
@@ -88,7 +87,6 @@ app.use((error: any, _req: express.Request, res: express.Response, _next: expres
 async function startServer() {
   await initWorkspacePermissions();
   await browserPool.initialize();
-  await createInitialCategories();
   await fetchListAIModels({ debug: true });
 
   app.listen(env.PORT, () => {
