@@ -11,7 +11,7 @@ import { fileURLToPath } from "url";
 
 import { env } from "@/env";
 import { validateSession, verifyRequest } from "@/lib/auth";
-import { browserPool } from "@/lib/playwright";
+// import { browserPool } from "@/lib/playwright";
 import { startGitStatsCron } from "@/modules/git-profile/git-profile-cron";
 import { createInitialPlans } from "@/modules/plan/plans";
 import { initWorkspacePermissions } from "@/modules/workspace";
@@ -87,7 +87,7 @@ app.use((error: any, _req: express.Request, res: express.Response, _next: expres
 // start server
 async function startServer() {
   await initWorkspacePermissions();
-  await browserPool.initialize();
+  // await browserPool.initialize();
   await fetchListAIModels({ debug: true });
 
   // start git stats cron job
