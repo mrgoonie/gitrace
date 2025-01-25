@@ -35,7 +35,7 @@ export async function getGitProfileList(
       },
     });
 
-    // Sort profiles by current streak and contributions
+    // Sort profiles by current streak, longest streak and contributions
     const sortedProfiles = profiles.sort((a, b) => {
       const aStats = a.yearlyStats[0];
       const bStats = b.yearlyStats[0];
@@ -49,7 +49,12 @@ export async function getGitProfileList(
         return bStats.currentStreak - aStats.currentStreak;
       }
 
-      // Then by contributions
+      // Then by longest streak
+      if (aStats.longestStreak !== bStats.longestStreak) {
+        return bStats.longestStreak - aStats.longestStreak;
+      }
+
+      // Finally by contributions
       return bStats.contributions - aStats.contributions;
     });
 
