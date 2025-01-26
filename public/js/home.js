@@ -122,11 +122,9 @@ async function loadLeaderboard(page = 1) {
     });
 
     // Update leaderboard HTML
-    leaderboardEl.innerHTML = sortedProfiles.map((profile, index) => {
+    leaderboardEl.innerHTML = sortedProfiles.map((profile) => {
       const stats = profile.yearlyStats[0] || { currentStreak: 0, longestStreak: 0, contributions: 0 };
-      const globalRank = (currentPage - 1) * perPage + index + 1;
-
-      return renderLeaderboardItem(profile, stats, globalRank);
+      return renderLeaderboardItem(profile, stats, profile.globalRank);
     }).join('');
 
     // Update pagination info and controls if they exist
@@ -299,20 +297,23 @@ function renderLeaderboardItem(profile, stats, globalRank) {
   return `
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
       <div class="flex items-center space-x-4 mb-2 sm:mb-0">
-        <span class="${globalRank <= 3 
-          ? 'text-2xl font-semibold text-red-400 dark:text-yellow-500' 
-          : globalRank <= 10 
-            ? 'text-xl font-semibold text-gray-900 dark:text-white'
-            : 'text-xl font-semibold text-gray-500'}">${rankEmoji} #${globalRank}</span>
+        <span class="${globalRank <= 3
+      ? 'text-2xl font-semibold text-red-400 dark:text-yellow-500'
+      : globalRank <= 10
+        ? 'text-xl font-semibold text-gray-900 dark:text-white'
+        : 'text-xl font-semibold text-gray-500'}">${rankEmoji} #${globalRank}</span>
         <a href="https://github.com/${username}" target="_blank" class="flex items-center hover:text-blue-500">
-          ${avatar ? `<img src="${avatar}" alt="${username}" class="w-6 h-6 rounded-full mr-2" />` : '<i class="ri-github-fill mr-2"></i>'}
+          ${avatar ? `<img src="${avatar}" alt="${username}" class="size-10 rounded-full mr-2" />` : '<i class="ri-github-fill mr-2"></i>'}
           <strong>${username}</strong>
         </a>
         <button onclick="toggleContributionGraph('${username}')" class="text-gray-500 hover:text-blue-500">
           <i class="ri-bar-chart-fill"></i>
         </button>
+        <button onclick="copyUsername('${username}')" class="text-gray-500 hover:text-blue-500">
+          <i class="ri-file-copy-2-fill"></i>
+        </button>
       </div>
-      <div class="flex flex-col gap-2 sm:flex-row sm:gap-4 sm:flex-wrap">
+      <div class="flex flex-col gap-2 lg:flex-row sm:gap-4 lg:flex-wrap">
         <div class="text-sm whitespace-nowrap">
           <span class="text-gray-500 dark:text-gray-400">🔥 Current streak:</span>
           <span class="ml-1 font-medium">${currentStreak} days</span>
@@ -331,6 +332,19 @@ function renderLeaderboardItem(profile, stats, globalRank) {
       <div id="graph-container-${username}"></div>
     </div>
   `;
+}
+
+// Copy username to clipboard
+async function copyUsername(username) {
+  try {
+    const currentOrigin = window.location.origin;
+    const gitRankUrl = `${currentOrigin}/?q=${username}`;
+    await navigator.clipboard.writeText(gitRankUrl);
+    showToast('success', `Username "${username}" copied to clipboard!`);
+  } catch (error) {
+    console.error('Failed to copy username:', error);
+    showToast('error', 'Failed to copy username');
+  }
 }
 
 // Show toast message
