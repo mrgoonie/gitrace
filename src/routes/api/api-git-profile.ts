@@ -14,9 +14,12 @@ export const apiGitProfileRouter = express.Router();
 
 apiGitProfileRouter.get("/", async (req, res) => {
   try {
-    const { page = 1, perPage = 50 } = req.query;
+    const { page = 1, perPage = 50, q } = req.query;
+    const searchQuery = q?.toString();
     const data = await getGitProfileList(
-      {},
+      {
+        ...(searchQuery && { username: { contains: searchQuery, mode: "insensitive" } }),
+      },
       {
         page: parseInt(page.toString()),
         perPage: parseInt(perPage.toString()),
