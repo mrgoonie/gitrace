@@ -90,6 +90,12 @@ async function loadLeaderboard(page = 1) {
     currentPage = pagination.page;
     totalPages = Math.ceil(pagination.total / pagination.perPage);
 
+    // Update total users count
+    const totalUsersEl = document.getElementById('total-users');
+    if (totalUsersEl) {
+      totalUsersEl.textContent = `(${pagination.total} users)`;
+    }
+
     // Sort profiles by current streak and contributions
     const sortedProfiles = profiles.sort((a, b) => {
       const aStats = a.yearlyStats[0] || { currentStreak: 0, longestStreak: 0, contributions: 0 };
