@@ -60,10 +60,14 @@ async function loadLeaderboard(page = 1) {
   try {
     // Get DOM elements
     const leaderboardEl = document.getElementById('leaderboard');
+    const searchInput = document.getElementById('search-input');
     if (!leaderboardEl) {
       console.error('Leaderboard element not found');
       return;
     }
+
+    // Get search query
+    const searchQuery = searchInput ? searchInput.value : getSearchFromUrl();
 
     // Update loading state
     leaderboardEl.innerHTML = '<div class="p-4 text-center text-gray-500 dark:text-gray-400"><i class="ri-loader-4-line animate-spin text-2xl"></i></div>';
@@ -78,7 +82,15 @@ async function loadLeaderboard(page = 1) {
     if (prevBtn) prevBtn.disabled = true;
     if (nextBtn) nextBtn.disabled = true;
 
-    const response = await fetch(`/api/v1/git-profile?page=${page}&perPage=${perPage}`);
+    // Build URL with search query
+    const url = new URL('/api/v1/git-profile', window.location.origin);
+    url.searchParams.set('page', page);
+    url.searchParams.set('perPage', perPage);
+    if (searchQuery) {
+      url.searchParams.set('q', searchQuery);
+    }
+
+    const response = await fetch(url);
     const result = await response.json();
 
     if (!result.success) {
@@ -110,11 +122,9 @@ async function loadLeaderboard(page = 1) {
     });
 
     // Update leaderboard HTML
-    leaderboardEl.innerHTML = sortedProfiles.map((profile, index) => {
+    leaderboardEl.innerHTML = sortedProfiles.map((profile) => {
       const stats = profile.yearlyStats[0] || { currentStreak: 0, longestStreak: 0, contributions: 0 };
-      const globalRank = (currentPage - 1) * perPage + index + 1;
-
-      return renderLeaderboardItem(profile, stats, globalRank);
+      return renderLeaderboardItem(profile, stats, profile.globalRank);
     }).join('');
 
     // Update pagination info and controls if they exist
@@ -131,6 +141,9 @@ async function loadLeaderboard(page = 1) {
       acc[profile.username] = profile;
       return acc;
     }, {});
+
+    // Update URL with current page and search query
+    updatePageUrl(page, searchQuery);
   } catch (error) {
     console.error('Error:', error);
     showToast('error', error.message);
@@ -277,39 +290,61 @@ function renderContributionGraph(dailyStats, containerId) {
 }
 
 function renderLeaderboardItem(profile, stats, globalRank) {
+  const { username, avatar } = profile;
+  const { currentStreak, longestStreak, contributions } = stats;
   const rankEmoji = globalRank === 1 ? '👑' : globalRank === 2 ? '🥈' : globalRank === 3 ? '🥉' : '';
 
   return `
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
       <div class="flex items-center space-x-4 mb-2 sm:mb-0">
-        <span class="${globalRank <= 3 ? 'text-2xl' : 'text-xl'} font-semibold ${globalRank <= 3 ? 'text-red-400 dark:text-yellow-500' : 'text-gray-500'}">${globalRank <= 3 ? rankEmoji : ''} #${globalRank}</span>
-        <a href="https://github.com/${profile.username}" target="_blank" class="flex items-center hover:text-blue-500">
-          ${profile.avatar ? `<img src="${profile.avatar}" alt="${profile.username}" class="w-6 h-6 rounded-full mr-2" />` : '<i class="ri-github-fill mr-2"></i>'}
-          <strong>${profile.username}</strong>
+        <span class="${globalRank <= 3
+      ? 'text-2xl font-semibold text-red-400 dark:text-yellow-500'
+      : globalRank <= 10
+        ? 'text-xl font-semibold text-gray-900 dark:text-white'
+        : 'text-xl font-semibold text-gray-500'}">${rankEmoji} #${globalRank}</span>
+        <a href="https://github.com/${username}" target="_blank" class="flex items-center hover:text-blue-500">
+          ${avatar ? `<img src="${avatar}" alt="${username}" class="size-10 rounded-full mr-2" />` : '<i class="ri-github-fill mr-2"></i>'}
+          <strong>${username}</strong>
         </a>
-        <button onclick="toggleContributionGraph('${profile.username}')" class="text-gray-500 hover:text-blue-500">
+        <button onclick="toggleContributionGraph('${username}')" class="text-gray-500 hover:text-blue-500">
           <i class="ri-bar-chart-fill"></i>
         </button>
+        <button onclick="copyUsername('${username}')" class="text-gray-500 hover:text-blue-500">
+          <i class="ri-file-copy-2-fill"></i>
+        </button>
       </div>
-      <div class="flex flex-col gap-2 sm:flex-row sm:gap-4 sm:flex-wrap">
+      <div class="flex flex-col gap-2 lg:flex-row sm:gap-4 lg:flex-wrap">
         <div class="text-sm whitespace-nowrap">
           <span class="text-gray-500 dark:text-gray-400">🔥 Current streak:</span>
-          <span class="ml-1 font-medium">${stats.currentStreak} days</span>
+          <span class="ml-1 font-medium">${currentStreak} days</span>
         </div>
         <div class="text-sm whitespace-nowrap">
           <span class="text-gray-500 dark:text-gray-400">⚡ Longest streak:</span>
-          <span class="ml-1 font-medium">${stats.longestStreak} days</span>
+          <span class="ml-1 font-medium">${longestStreak} days</span>
         </div>
         <div class="text-sm whitespace-nowrap">
           <span class="text-gray-500 dark:text-gray-400">📊 Contributions:</span>
-          <span class="ml-1 font-medium">${stats.contributions}</span>
+          <span class="ml-1 font-medium">${contributions}</span>
         </div>
       </div>
     </div>
-    <div id="graph-${profile.username}" class="hidden">
-      <div id="graph-container-${profile.username}"></div>
+    <div id="graph-${username}" class="hidden">
+      <div id="graph-container-${username}"></div>
     </div>
   `;
+}
+
+// Copy username to clipboard
+async function copyUsername(username) {
+  try {
+    const currentOrigin = window.location.origin;
+    const gitRankUrl = `${currentOrigin}/?q=${username}`;
+    await navigator.clipboard.writeText(gitRankUrl);
+    showToast('success', `Username "${username}" copied to clipboard!`);
+  } catch (error) {
+    console.error('Failed to copy username:', error);
+    showToast('error', 'Failed to copy username');
+  }
 }
 
 // Show toast message
@@ -360,13 +395,14 @@ function showToast(type, message) {
   }, 3000);
 }
 
-// Update URL with current page
-function updatePageUrl(page) {
+// Update URL with current page and search query
+function updatePageUrl(page, searchQuery) {
   const url = new URL(window.location);
-  if (page === 1) {
-    url.searchParams.delete('page');
+  url.searchParams.set('page', page);
+  if (searchQuery) {
+    url.searchParams.set('q', searchQuery);
   } else {
-    url.searchParams.set('page', page);
+    url.searchParams.delete('q');
   }
   window.history.pushState({}, '', url);
 }
@@ -374,19 +410,45 @@ function updatePageUrl(page) {
 // Get page from URL
 function getPageFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
-  const page = parseInt(urlParams.get('page')) || 1;
-  return page;
+  return parseInt(urlParams.get('page')) || 1;
+}
+
+// Get search query from URL
+function getSearchFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('q') || '';
 }
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  // Get initial page from URL
+  // Get initial page and search from URL
   const initialPage = getPageFromUrl();
+  const initialSearch = getSearchFromUrl();
+
+  // Set initial search value
+  const searchInput = document.getElementById('search-input');
+  if (searchInput && initialSearch) {
+    searchInput.value = initialSearch;
+  }
+
+  // Add search input event listener
+  if (searchInput) {
+    let debounceTimer;
+    searchInput.addEventListener('input', (event) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadLeaderboard(1); // Reset to first page when searching
+      }, 300); // Debounce for 300ms
+    });
+  }
+
+  // Load initial data
   loadLeaderboard(initialPage);
 
   // Handle browser back/forward buttons
   window.addEventListener('popstate', () => {
     const page = getPageFromUrl();
+    const searchQuery = getSearchFromUrl();
     loadLeaderboard(page);
   });
 
@@ -399,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (currentPage > 1) {
         const newPage = currentPage - 1;
         loadLeaderboard(newPage);
-        updatePageUrl(newPage);
+        updatePageUrl(newPage, getSearchFromUrl());
       }
     });
   }
@@ -409,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (currentPage < totalPages) {
         const newPage = currentPage + 1;
         loadLeaderboard(newPage);
-        updatePageUrl(newPage);
+        updatePageUrl(newPage, getSearchFromUrl());
       }
     });
   }

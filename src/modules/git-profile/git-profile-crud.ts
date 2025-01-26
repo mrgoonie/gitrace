@@ -23,8 +23,7 @@ export async function getGitProfileList(
     const { page = 1, perPage = 10 } = options ?? {};
 
     // First get all profiles with their latest yearly stats
-    const profiles = await prisma.gitProfile.findMany({
-      where,
+    const allProfiles = await prisma.gitProfile.findMany({
       include: {
         yearlyStats: {
           orderBy: {
@@ -35,8 +34,8 @@ export async function getGitProfileList(
       },
     });
 
-    // Sort profiles by current streak, longest streak and contributions
-    const sortedProfiles = profiles.sort((a, b) => {
+    // Sort all profiles to establish global ranks
+    const sortedProfiles = allProfiles.sort((a, b) => {
       const aStats = a.yearlyStats[0];
       const bStats = b.yearlyStats[0];
 
@@ -58,10 +57,23 @@ export async function getGitProfileList(
       return bStats.contributions - aStats.contributions;
     });
 
-    // Apply pagination to sorted results
-    const total = sortedProfiles.length;
+    // Add global rank to each profile
+    const profilesWithRank = sortedProfiles.map((profile, index) => ({
+      ...profile,
+      globalRank: index + 1,
+    }));
+
+    // Apply search filter if provided
+    const filteredProfiles = where.username
+      ? profilesWithRank.filter((profile) =>
+          profile.username.toLowerCase().includes((where.username as any).contains.toLowerCase())
+        )
+      : profilesWithRank;
+
+    // Apply pagination to filtered results
+    const total = filteredProfiles.length;
     const start = (page - 1) * perPage;
-    const paginatedProfiles = sortedProfiles.slice(start, start + perPage);
+    const paginatedProfiles = filteredProfiles.slice(start, start + perPage);
 
     return {
       list: paginatedProfiles,
