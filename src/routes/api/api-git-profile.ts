@@ -3,6 +3,8 @@ import express from "express";
 import {
   createGitProfile,
   createYearlyStats,
+  deleteGitProfile,
+  deleteGitProfileByUsername,
   fetchGitStats,
   getGitProfileById,
   getGitProfileByUsername,
@@ -137,6 +139,47 @@ apiGitProfileRouter.post("/", async (req, res) => {
     });
   } catch (error) {
     console.error("api-git-profile > POST / > error :>>", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+apiGitProfileRouter.delete("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    await deleteGitProfile(id);
+    return res.status(200).json({
+      success: true,
+      message: "Git profile deleted successfully",
+    });
+  } catch (error) {
+    console.error("api-git-profile > DELETE /:id > error :>>", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+/**
+ * Delete git profile by git username
+ * @param username
+ * @returns
+ */
+apiGitProfileRouter.delete("/username/:username", async (req, res) => {
+  try {
+    const username = req.params.username;
+    await deleteGitProfileByUsername(username);
+    return res.status(200).json({
+      success: true,
+      message: "Git profile deleted successfully",
+    });
+  } catch (error) {
+    console.error("api-git-profile > DELETE /username/:username > error :>>", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

@@ -241,13 +241,16 @@ export async function updateGitProfile(
 }
 
 /**
- * Delete a git profile
+ * Delete a git profile and all its associated data
  */
 export async function deleteGitProfile(id: string): Promise<void> {
   try {
     // Check if profile exists
     const existingProfile = await prisma.gitProfile.findUnique({
       where: { id },
+      include: {
+        yearlyStats: true,
+      },
     });
 
     if (!existingProfile) {
@@ -257,10 +260,48 @@ export async function deleteGitProfile(id: string): Promise<void> {
       });
     }
 
-    // Delete profile (this will cascade delete yearlyStats)
+    // Delete all yearly stats first
+    await prisma.yearlyStats.deleteMany({
+      where: {
+        profileId: id,
+      },
+    });
+
+    // Then delete the profile
     await prisma.gitProfile.delete({
       where: { id },
     });
+
+    // Profile will be automatically removed from cron tracking in next run
+    console.log(
+      `Deleted git profile ${existingProfile.username} - will be removed from cron tracking`
+    );
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to delete git profile",
+      cause: error,
+    });
+  }
+}
+
+export async function deleteGitProfileByUsername(username: string): Promise<void> {
+  try {
+    // Check if profile exists
+    const existingProfile = await prisma.gitProfile.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+
+    if (!existingProfile) {
+      throw new ApiError({
+        code: "NOT_FOUND",
+        message: "Git profile not found",
+      });
+    }
+
+    return deleteGitProfile(existingProfile.id);
   } catch (error) {
     if (error instanceof ApiError) throw error;
     throw new ApiError({
