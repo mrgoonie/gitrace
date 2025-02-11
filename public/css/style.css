@@ -849,11 +849,6 @@ input::placeholder {
   margin-bottom: 0px;
 }
 
-.my-10 {
-  margin-top: 2.5rem;
-  margin-bottom: 2.5rem;
-}
-
 .my-4 {
   margin-top: 1rem;
   margin-bottom: 1rem;
@@ -1123,10 +1118,6 @@ input::placeholder {
 
 .\!max-w-screen-lg {
   max-width: 1024px !important;
-}
-
-.max-w-4xl {
-  max-width: 56rem;
 }
 
 .max-w-5xl {
@@ -1636,6 +1627,11 @@ input::placeholder {
   background-color: var(--color-secondary-3);
 }
 
+.bg-slate-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(241 245 249 / var(--tw-bg-opacity, 1));
+}
+
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
@@ -1649,11 +1645,6 @@ input::placeholder {
 .bg-zinc-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(244 244 245 / var(--tw-bg-opacity, 1));
-}
-
-.bg-slate-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(241 245 249 / var(--tw-bg-opacity, 1));
 }
 
 .bg-opacity-0 {
@@ -2366,6 +2357,12 @@ input::placeholder {
   border-right-color: rgb(55 65 81 / var(--tw-border-opacity, 1));
 }
 
+/* IndieBoosting */
+
+.products-grid {
+  text-align: left;
+}
+
 .hover\:border-red-500:hover {
   --tw-border-opacity: 1;
   border-color: rgb(239 68 68 / var(--tw-border-opacity, 1));
@@ -2899,10 +2896,6 @@ input::placeholder {
     align-items: center;
   }
 
-  .sm\:gap-4 {
-    gap: 1rem;
-  }
-
   .sm\:p-4 {
     padding: 1rem;
   }
@@ -2964,14 +2957,6 @@ input::placeholder {
 
   .lg\:grid-cols-4 {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .lg\:flex-row {
-    flex-direction: row;
-  }
-
-  .lg\:flex-wrap {
-    flex-wrap: wrap;
   }
 
   .lg\:px-8 {

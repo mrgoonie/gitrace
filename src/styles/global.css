@@ -96,3 +96,8 @@
 .tippy-box[data-theme~="gitrace"][data-placement^="right"] > .tippy-arrow::before {
   @apply border-r-gray-800 dark:border-r-gray-700;
 }
+
+/* IndieBoosting */
+.products-grid {
+  text-align: left;
+}
