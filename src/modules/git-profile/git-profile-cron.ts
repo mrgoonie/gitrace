@@ -79,7 +79,7 @@ async function updateGitStats() {
       }
     }
   } catch (error) {
-    console.error("Failed to update git stats:", error);
+    console.error("[SKIP] Failed to update git stats:", error);
   }
 }
 

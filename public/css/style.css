@@ -849,11 +849,6 @@ input::placeholder {
   margin-bottom: 0px;
 }
 
-.my-10 {
-  margin-top: 2.5rem;
-  margin-bottom: 2.5rem;
-}
-
 .my-4 {
   margin-top: 1rem;
   margin-bottom: 1rem;
@@ -987,6 +982,11 @@ input::placeholder {
   display: none;
 }
 
+.size-10 {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
 .size-20 {
   width: 5rem;
   height: 5rem;
@@ -1012,11 +1012,6 @@ input::placeholder {
   height: 60px;
 }
 
-.size-10 {
-  width: 2.5rem;
-  height: 2.5rem;
-}
-
 .h-10 {
   height: 2.5rem;
 }
@@ -1039,10 +1034,6 @@ input::placeholder {
 
 .h-5 {
   height: 1.25rem;
-}
-
-.h-6 {
-  height: 1.5rem;
 }
 
 .h-64 {
@@ -1093,10 +1084,6 @@ input::placeholder {
   width: 83.333333%;
 }
 
-.w-6 {
-  width: 1.5rem;
-}
-
 .w-64 {
   width: 16rem;
 }
@@ -1133,10 +1120,6 @@ input::placeholder {
   max-width: 1024px !important;
 }
 
-.max-w-4xl {
-  max-width: 56rem;
-}
-
 .max-w-5xl {
   max-width: 64rem;
 }
@@ -1159,6 +1142,10 @@ input::placeholder {
 
 .max-w-screen-sm {
   max-width: 640px;
+}
+
+.max-w-sm {
+  max-width: 24rem;
 }
 
 .flex-1 {
@@ -1638,6 +1625,11 @@ input::placeholder {
 
 .bg-secondary-3 {
   background-color: var(--color-secondary-3);
+}
+
+.bg-slate-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(241 245 249 / var(--tw-bg-opacity, 1));
 }
 
 .bg-white {
@@ -2365,6 +2357,12 @@ input::placeholder {
   border-right-color: rgb(55 65 81 / var(--tw-border-opacity, 1));
 }
 
+/* IndieBoosting */
+
+.products-grid {
+  text-align: left;
+}
+
 .hover\:border-red-500:hover {
   --tw-border-opacity: 1;
   border-color: rgb(239 68 68 / var(--tw-border-opacity, 1));
@@ -2894,16 +2892,8 @@ input::placeholder {
     flex-direction: row;
   }
 
-  .sm\:flex-wrap {
-    flex-wrap: wrap;
-  }
-
   .sm\:items-center {
     align-items: center;
-  }
-
-  .sm\:gap-4 {
-    gap: 1rem;
   }
 
   .sm\:p-4 {
@@ -2945,8 +2935,8 @@ input::placeholder {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .md\:flex-wrap {
-    flex-wrap: wrap;
+  .md\:flex-row {
+    flex-direction: row;
   }
 
   .md\:px-0 {
@@ -2967,14 +2957,6 @@ input::placeholder {
 
   .lg\:grid-cols-4 {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .lg\:flex-row {
-    flex-direction: row;
-  }
-
-  .lg\:flex-wrap {
-    flex-wrap: wrap;
   }
 
   .lg\:px-8 {
