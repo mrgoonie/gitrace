@@ -51,7 +51,7 @@ apiGitProfileRouter.get("/fetch", async (req, res) => {
         message: "Username is required",
       });
     const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear();
-    const data = await fetchGitStats(username.toString(), year);
+    const data = await fetchGitStats(username.toString().toLowerCase(), year);
     return res.status(200).json({
       success: true,
       message: "Git stats retrieved successfully",
@@ -108,7 +108,7 @@ apiGitProfileRouter.post("/", async (req, res) => {
 
     // Create profile and fetch stats
     const year = new Date().getFullYear();
-    const stats = await fetchGitStats(username, year, { debug: true });
+    const stats = await fetchGitStats(username.toLowerCase(), year, { debug: true });
     console.log("stats :>> ", stats);
     const profile = await createGitProfile(
       {
