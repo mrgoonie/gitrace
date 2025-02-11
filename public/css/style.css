@@ -987,6 +987,11 @@ input::placeholder {
   display: none;
 }
 
+.size-10 {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
 .size-20 {
   width: 5rem;
   height: 5rem;
@@ -1012,11 +1017,6 @@ input::placeholder {
   height: 60px;
 }
 
-.size-10 {
-  width: 2.5rem;
-  height: 2.5rem;
-}
-
 .h-10 {
   height: 2.5rem;
 }
@@ -1039,10 +1039,6 @@ input::placeholder {
 
 .h-5 {
   height: 1.25rem;
-}
-
-.h-6 {
-  height: 1.5rem;
 }
 
 .h-64 {
@@ -1091,10 +1087,6 @@ input::placeholder {
 
 .w-5\/6 {
   width: 83.333333%;
-}
-
-.w-6 {
-  width: 1.5rem;
 }
 
 .w-64 {
@@ -1159,6 +1151,10 @@ input::placeholder {
 
 .max-w-screen-sm {
   max-width: 640px;
+}
+
+.max-w-sm {
+  max-width: 24rem;
 }
 
 .flex-1 {
@@ -1653,6 +1649,11 @@ input::placeholder {
 .bg-zinc-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(244 244 245 / var(--tw-bg-opacity, 1));
+}
+
+.bg-slate-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(241 245 249 / var(--tw-bg-opacity, 1));
 }
 
 .bg-opacity-0 {
@@ -2894,10 +2895,6 @@ input::placeholder {
     flex-direction: row;
   }
 
-  .sm\:flex-wrap {
-    flex-wrap: wrap;
-  }
-
   .sm\:items-center {
     align-items: center;
   }
@@ -2945,8 +2942,8 @@ input::placeholder {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .md\:flex-wrap {
-    flex-wrap: wrap;
+  .md\:flex-row {
+    flex-direction: row;
   }
 
   .md\:px-0 {

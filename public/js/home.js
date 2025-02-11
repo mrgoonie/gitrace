@@ -1,7 +1,7 @@
 // Global state for pagination
 let currentPage = 1;
 let totalPages = 1;
-let perPage = 50;
+let perPage = 20;
 
 // Handle form submission to create git profile
 async function handleCreateProfile(event) {
@@ -313,7 +313,7 @@ function renderLeaderboardItem(profile, stats, globalRank) {
           <i class="ri-file-copy-2-fill"></i>
         </button>
       </div>
-      <div class="flex flex-col gap-2 lg:flex-row sm:gap-4 lg:flex-wrap">
+      <div class="flex flex-col gap-2">
         <div class="text-sm whitespace-nowrap">
           <span class="text-gray-500 dark:text-gray-400">🔥 Current streak:</span>
           <span class="ml-1 font-medium">${currentStreak} days</span>

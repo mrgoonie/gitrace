@@ -24,7 +24,7 @@
 
 <!-- BODY -->
 
-<body class="w-full dark:bg-gray-900 dark:text-white">
+<body class="w-full bg-slate-100 dark:bg-gray-900 dark:text-white">
   <!-- HEADER -->
   <% if (typeof locals.headerEnabled === 'undefined' || locals.headerEnabled) { %>
   <%- include('common/header', locals) %>
@@ -34,11 +34,6 @@
   <% if (typeof page !== 'undefined') { %>
   <%- include(page, locals); %>
   <% } %>
-
-  <!-- IndieBoosting -->
-  <div class="w-full max-w-4xl mx-auto my-10 text-center">
-    <script src="https://cdn.indieboosting.com/latest/script.js?id=URQ1NIHLVN&maxProducts=9&maxColumns=3&title=My Other Products"></script>
-  </div>
 
   <!-- FOOTER -->
   <% if (typeof locals.footerEnabled === 'undefined' || locals.footerEnabled) { %>

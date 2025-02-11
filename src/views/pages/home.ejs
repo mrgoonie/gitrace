@@ -29,46 +29,52 @@
     </div>
   </form>
 
-  <!-- Leaderboard -->
-  <div class="w-full bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700">
-    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-      <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Top Contributors <span id="total-users" class="text-sm font-normal text-gray-500 dark:text-gray-400"></span></h2>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Sorted by current streak and contributions</p>
-      <!-- Search input -->
-      <div class="mt-4">
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <i class="ri-search-line text-gray-400 dark:text-gray-500"></i>
-          </div>
-          <input type="text" id="search-input" placeholder="Search by username..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg 
+  <div class="flex w-full flex-col md:flex-row gap-4">
+    <!-- Leaderboard -->
+    <div class="w-full bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700">
+      <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Top Contributors <span id="total-users" class="text-sm font-normal text-gray-500 dark:text-gray-400"></span></h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Sorted by current streak and contributions</p>
+        <!-- Search input -->
+        <div class="mt-4">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i class="ri-search-line text-gray-400 dark:text-gray-500"></i>
+            </div>
+            <input type="text" id="search-input" placeholder="Search by username..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg 
               focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
               dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400
               dark:focus:ring-blue-400 dark:focus:border-blue-400">
+          </div>
+        </div>
+      </div>
+      <div id="leaderboard" class="divide-y divide-gray-200 dark:divide-gray-700">
+        <!-- Leaderboard items will be inserted here by JavaScript -->
+      </div>
+      <!-- Pagination -->
+      <div id="pagination" class="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <span id="pagination-info">Loading...</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button id="prev-page" class="inline-flex items-center px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 
+          hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
+          text-gray-700 dark:text-gray-300">
+            <i class="ri-arrow-left-s-line mr-1"></i>
+            Previous
+          </button>
+          <button id="next-page" class="inline-flex items-center px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 
+          hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
+          text-gray-700 dark:text-gray-300">
+            Next
+            <i class="ri-arrow-right-s-line ml-1"></i>
+          </button>
         </div>
       </div>
     </div>
-    <div id="leaderboard" class="divide-y divide-gray-200 dark:divide-gray-700">
-      <!-- Leaderboard items will be inserted here by JavaScript -->
-    </div>
-    <!-- Pagination -->
-    <div id="pagination" class="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
-      <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
-        <span id="pagination-info">Loading...</span>
-      </div>
-      <div class="flex items-center space-x-2">
-        <button id="prev-page" class="inline-flex items-center px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 
-          hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
-          text-gray-700 dark:text-gray-300">
-          <i class="ri-arrow-left-s-line mr-1"></i>
-          Previous
-        </button>
-        <button id="next-page" class="inline-flex items-center px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 
-          hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed
-          text-gray-700 dark:text-gray-300">
-          Next
-          <i class="ri-arrow-right-s-line ml-1"></i>
-        </button>
-      </div>
+    <!-- Sidebar: IndieBoosting -->
+    <div class="w-full max-w-sm text-center">
+      <script src="https://cdn.indieboosting.com/latest/script.js?id=URQ1NIHLVN&maxProducts=10&direction=vertical&title=My Other Products"></script>
     </div>
   </div>
 </div>
