@@ -34,6 +34,12 @@ export async function getGitProfileList(
       },
     });
 
+    // Get current day of year
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const totalDaysInYear =
+      Math.floor((now.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+
     // Sort all profiles to establish global ranks
     const sortedProfiles = allProfiles.sort((a, b) => {
       const aStats = a.yearlyStats[0];
@@ -43,32 +49,51 @@ export async function getGitProfileList(
       if (!aStats) return 1;
       if (!bStats) return -1;
 
-      // First sort by current streak
+      // 1. First sort by current streak
       if (aStats.currentStreak !== bStats.currentStreak) {
         return bStats.currentStreak - aStats.currentStreak;
       }
 
-      // Then by longest streak
+      // 2. Then by longest streak
       if (aStats.longestStreak !== bStats.longestStreak) {
         return bStats.longestStreak - aStats.longestStreak;
       }
 
-      // Finally by contributions
+      // 3. Then by consistent rate
+      const aDates = (aStats.dates as Record<string, number>) || {};
+      const bDates = (bStats.dates as Record<string, number>) || {};
+      const aDaysWithCommit = Object.values(aDates).filter((count) => count > 0).length;
+      const bDaysWithCommit = Object.values(bDates).filter((count) => count > 0).length;
+      const aConsistentRate = Math.min((aDaysWithCommit / totalDaysInYear) * 100, 100);
+      const bConsistentRate = Math.min((bDaysWithCommit / totalDaysInYear) * 100, 100);
+      if (aConsistentRate !== bConsistentRate) {
+        return bConsistentRate - aConsistentRate;
+      }
+
+      // 4. Finally by contributions
       return bStats.contributions - aStats.contributions;
     });
 
-    // Add global rank to each profile
-    const profilesWithRank = sortedProfiles.map((profile, index) => ({
-      ...profile,
-      globalRank: index + 1,
-    }));
+    // Add global rank and consistent rate to each profile
+    const profilesWithRankAndRate = sortedProfiles.map((profile, index) => {
+      const stats = profile.yearlyStats[0];
+      const dates = (stats?.dates as Record<string, number>) || {};
+      const daysWithCommit = Object.values(dates).filter((count) => count > 0).length;
+      const consistentRate = Math.min((daysWithCommit / totalDaysInYear) * 100, 100);
+
+      return {
+        ...profile,
+        globalRank: index + 1,
+        consistentRate: Number(consistentRate.toFixed(2)),
+      };
+    });
 
     // Apply search filter if provided
     const filteredProfiles = where.username
-      ? profilesWithRank.filter((profile) =>
+      ? profilesWithRankAndRate.filter((profile) =>
           profile.username.toLowerCase().includes((where.username as any).contains.toLowerCase())
         )
-      : profilesWithRank;
+      : profilesWithRankAndRate;
 
     // Apply pagination to filtered results
     const total = filteredProfiles.length;

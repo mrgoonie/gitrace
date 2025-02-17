@@ -290,7 +290,7 @@ function renderContributionGraph(dailyStats, containerId) {
 }
 
 function renderLeaderboardItem(profile, stats, globalRank) {
-  const { username, avatar } = profile;
+  const { username, avatar, consistentRate } = profile;
   const { currentStreak, longestStreak, contributions } = stats;
   const rankEmoji = globalRank === 1 ? '👑' : globalRank === 2 ? '🥈' : globalRank === 3 ? '🥉' : '';
 
@@ -326,6 +326,10 @@ function renderLeaderboardItem(profile, stats, globalRank) {
         <div class="text-sm whitespace-nowrap">
           <span class="text-gray-500 dark:text-gray-400">⚡ Longest streak:</span>
           <span class="ml-1 font-medium">${longestStreak} days</span>
+        </div>
+        <div class="text-sm whitespace-nowrap">
+          <span class="text-gray-500 dark:text-gray-400">📈 Consistent rate:</span>
+          <span class="ml-1 font-medium">${consistentRate}%</span>
         </div>
         <div class="text-sm whitespace-nowrap">
           <span class="text-gray-500 dark:text-gray-400">📊 Contributions:</span>
@@ -431,10 +435,10 @@ function getSearchFromUrl() {
 // Helper function to detect and render URLs as links
 function renderLinksInText(text) {
   if (!text) return '';
-  
+
   // Regular expression to match URLs and domain names
   const urlRegex = /(https?:\/\/[^\s]+)|((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}/g;
-  
+
   // Replace URLs and domains with anchor tags
   return text.replace(urlRegex, (match) => {
     const url = match.startsWith('http') ? match : `https://${match}`;
