@@ -315,7 +315,7 @@ function renderLeaderboardItem(profile, stats, globalRank) {
           </button>
         </div>
         <div class="bio mt-2 italic text-sm text-gray-700 dark:text-gray-300">
-          ${profile.description}
+          ${renderLinksInText(profile.description)}
         </div>
       </div>
       <div class="flex flex-col gap-2">
@@ -426,6 +426,20 @@ function getPageFromUrl() {
 function getSearchFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('q') || '';
+}
+
+// Helper function to detect and render URLs as links
+function renderLinksInText(text) {
+  if (!text) return '';
+  
+  // Regular expression to match URLs and domain names
+  const urlRegex = /(https?:\/\/[^\s]+)|((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}/g;
+  
+  // Replace URLs and domains with anchor tags
+  return text.replace(urlRegex, (match) => {
+    const url = match.startsWith('http') ? match : `https://${match}`;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline">${match}</a>`;
+  });
 }
 
 // Initialize
