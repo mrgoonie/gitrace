@@ -35,6 +35,9 @@ export async function fetchGitStats(
       );
     }
 
+    // Fetch github profile description
+    const description = profileCheck.data?.bio;
+
     // Fetch contribution stats using GitHub API
     const stats = await getContributionStats(username, year);
 
@@ -83,6 +86,7 @@ export async function fetchGitStats(
     // Create GitStats object
     const gitStats: GitStats = {
       username,
+      description,
       year,
       url: `https://github.com/${username}`,
       totalContributions,

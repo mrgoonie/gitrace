@@ -3,6 +3,7 @@ import { z } from "zod";
 export const GitStatsSchema = z.object({
   username: z.string(),
   url: z.string().url(),
+  description: z.string().nullable().optional(),
   year: z.number(),
   totalContributions: z.number(),
   avatarUrl: z.string().url().nullable().optional(),

@@ -2,7 +2,8 @@
   const user = <%- user ? JSON.stringify(user) : 'null' %>;
 </script>
 <div class="px-6 py-10 flex flex-col items-center justify-center max-w-6xl mx-auto">
-  <h1 class="text-4xl font-bold mb-8 text-center text-gray-900 dark:text-white">Commit Streak Leaderboard <%= new Date().getFullYear() %></h1>
+  <h1 class="text-4xl font-bold mb-2 text-center text-gray-900 dark:text-white">Commit Streak Leaderboard <%= new Date().getFullYear() %></h1>
+  <p class="text-center text-gray-500 dark:text-gray-400 mb-8">Just surpassing your past self each day means you already won, commit to committing daily & become 1% better every day.</p>
 
   <!-- Create profile form -->
   <form id="create-profile-form" class="w-full max-w-lg mb-12">
@@ -31,7 +32,7 @@
 
   <div class="flex w-full flex-col md:flex-row gap-4">
     <!-- Leaderboard -->
-    <div class="w-full bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700">
+    <div class="flex-1 min-w-0 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700">
       <div class="p-4 border-b border-gray-200 dark:border-gray-700">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Top Contributors <span id="total-users" class="text-sm font-normal text-gray-500 dark:text-gray-400"></span></h2>
         <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Sorted by current streak and contributions</p>
@@ -73,7 +74,7 @@
       </div>
     </div>
     <!-- Sidebar: IndieBoosting -->
-    <div class="w-full max-w-sm text-center">
+    <div class="w-[350px] text-center shrink-0">
       <script src="https://cdn.indieboosting.com/latest/script.js?id=URQ1NIHLVN&maxProducts=15&direction=vertical&title=Top Indie Products"></script>
     </div>
   </div>

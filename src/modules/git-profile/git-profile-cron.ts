@@ -39,12 +39,17 @@ async function updateGitStats() {
             const stats = await fetchGitStats(profile.username, currentYear, { debug: false });
 
             // Update git profile if anything changed
-            if (stats.url !== profile.url || stats.avatarUrl !== profile.avatar) {
+            if (
+              stats.url !== profile.url ||
+              stats.avatarUrl !== profile.avatar ||
+              stats.description !== profile.description
+            ) {
               await prisma.gitProfile.update({
                 where: { id: profile.id },
                 data: {
                   url: stats.url,
                   avatar: stats.avatarUrl,
+                  description: stats.description,
                 },
               });
               console.log(`Updated git profile for ${profile.username}`);

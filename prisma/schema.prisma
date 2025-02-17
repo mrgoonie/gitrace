@@ -345,10 +345,11 @@ model ApiKey {
 // ------------------ APP SPECIFIC SCHEMAS ------------------
 
 model GitProfile {
-    id       String  @id @default(uuid())
-    username String  @unique
-    url      String?
-    avatar   String?
+    id          String  @id @default(uuid())
+    username    String  @unique
+    url         String?
+    avatar      String?
+    description String?
 
     createdAt DateTime  @default(now())
     updatedAt DateTime? @updatedAt
