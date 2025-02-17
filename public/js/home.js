@@ -249,7 +249,7 @@ function renderContributionGraph(dailyStats, containerId) {
 
   // Create the HTML for the graph
   const graphHtml = `
-    <div class="flex gap-1 p-4 overflow-auto">
+    <div class="flex gap-1 p-4">
       <div class="flex flex-col gap-1">
         ${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(day => `
           <div class="h-3 w-3 flex items-center justify-center text-xs text-gray-400">
@@ -296,22 +296,27 @@ function renderLeaderboardItem(profile, stats, globalRank) {
 
   return `
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-      <div class="flex items-center space-x-4 mb-2 sm:mb-0">
-        <span class="${globalRank <= 3
+      <div class="flex flex-col items-start mb-2 sm:mb-0">
+        <div class="flex items-center space-x-2">
+          <span class="${globalRank <= 3
       ? 'text-2xl font-semibold text-red-400 dark:text-yellow-500'
       : globalRank <= 10
         ? 'text-xl font-semibold text-gray-900 dark:text-white'
         : 'text-xl font-semibold text-gray-500'}">${rankEmoji} #${globalRank}</span>
-        <a href="https://github.com/${username}" target="_blank" class="flex items-center hover:text-blue-500">
-          ${avatar ? `<img src="${avatar}" alt="${username}" class="size-10 rounded-full mr-2" />` : '<i class="ri-github-fill mr-2"></i>'}
-          <strong>${username}</strong>
-        </a>
-        <button onclick="toggleContributionGraph('${username}')" class="text-gray-500 hover:text-blue-500">
-          <i class="ri-bar-chart-fill"></i>
-        </button>
-        <button onclick="copyUsername('${username}')" class="text-gray-500 hover:text-blue-500">
-          <i class="ri-file-copy-2-fill"></i>
-        </button>
+          <a href="https://github.com/${username}" target="_blank" class="flex items-center hover:text-blue-500">
+            ${avatar ? `<img src="${avatar}" alt="${username}" class="size-10 rounded-full mr-2" />` : '<i class="ri-github-fill mr-2"></i>'}
+            <strong>${username}</strong>
+          </a>
+          <button onclick="toggleContributionGraph('${username}')" class="text-gray-500 hover:text-blue-500">
+            <i class="ri-bar-chart-fill"></i>
+          </button>
+          <button onclick="copyUsername('${username}')" class="text-gray-500 hover:text-blue-500">
+            <i class="ri-file-copy-2-fill"></i>
+          </button>
+        </div>
+        <div class="bio mt-2 italic text-sm text-gray-700 dark:text-gray-300">
+          ${profile.description}
+        </div>
       </div>
       <div class="flex flex-col gap-2">
         <div class="text-sm whitespace-nowrap">
@@ -329,7 +334,11 @@ function renderLeaderboardItem(profile, stats, globalRank) {
       </div>
     </div>
     <div id="graph-${username}" class="hidden">
-      <div id="graph-container-${username}"></div>
+      <div class="relative w-full overflow-x-auto">
+        <div id="graph-container-${username}" class="min-w-max">
+          <div class="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-white dark:from-gray-800"></div>
+        </div>
+      </div>
     </div>
   `;
 }

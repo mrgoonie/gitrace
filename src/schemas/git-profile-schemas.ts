@@ -16,6 +16,7 @@ export const gitProfileSchema = z.object({
   username: z.string().min(1, "GitHub username is required"),
   url: z.string().url("Invalid GitHub URL").nullable(),
   avatar: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
 });
 
 // Create schemas
